@@ -1,23 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
+import { apiFetch } from '../services/api';
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
-
-function getToken() {
-  return localStorage.getItem('admin_token');
-}
-
-function apiFetch(url, opts = {}) {
-  // Always use /api/ prefix for all API calls
-  return fetch(`/api${url.startsWith('/') ? url : '/' + url}`, {
-    ...opts,
-    headers: {
-      ...(opts.headers || {}),
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
-}
 
 function ImagePreview({ src, alt }) {
   return src ? <img src={src} alt={alt} className="w-24 h-24 object-cover rounded shadow" /> : null;
@@ -38,7 +24,7 @@ export default function AdminDashboard() {
 
   // Auth check
   useEffect(() => {
-    if (!getToken()) navigate('/admin-login');
+    if (!localStorage.getItem('admin_token')) navigate('/admin-login');
   }, [navigate]);
 
   // Load data

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AnimatedCard from './AnimatedCard';
+import { apiFetch } from '../services/api';
 
 export default function PortfolioSection() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -22,7 +23,7 @@ export default function PortfolioSection() {
     const fetchPortfolioData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/portfolio`);
+        const response = await apiFetch(`/portfolio`);
         if (!response.ok) {
           throw new Error('Failed to fetch portfolio data');
         }

@@ -1,27 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-function getToken() {
-  return localStorage.getItem('admin_token');
-}
-
-function apiFetch(url, opts = {}) {
-  const headers = {
-    ...(opts.headers || {}),
-    Authorization: `Bearer ${getToken()}`,
-  };
-  
-  // Don't set Content-Type for FormData (file uploads)
-  // Let the browser set it automatically for multipart/form-data
-  if (!(opts.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-  
-  return fetch(`/api${url.startsWith('/') ? url : '/' + url}`, {
-    ...opts,
-    headers,
-  });
-}
+import { apiFetch } from '../services/api';
 
 export default function AdminProjectDetail() {
   const { id } = useParams();

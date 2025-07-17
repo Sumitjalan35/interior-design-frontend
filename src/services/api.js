@@ -1,7 +1,13 @@
 import axios from 'axios';
 
 // Use VITE_API_URL from environment, fallback to '/api' for local dev
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+export function apiFetch(url, opts = {}) {
+  // Always ensure /api/ prefix
+  const path = url.startsWith('/api/') ? url : `/api${url.startsWith('/') ? url : '/' + url}`;
+  return fetch(`${API_BASE}${path}`, opts);
+}
 
 // Create axios instance
 const api = axios.create({
