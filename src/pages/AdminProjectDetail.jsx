@@ -5,7 +5,6 @@ function getToken() {
   return localStorage.getItem('admin_token');
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
 function apiFetch(url, opts = {}) {
   const headers = {
     ...(opts.headers || {}),
@@ -18,7 +17,7 @@ function apiFetch(url, opts = {}) {
     headers['Content-Type'] = 'application/json';
   }
   
-  return fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
+  return fetch(`/api${url.startsWith('/') ? url : '/' + url}`, {
     ...opts,
     headers,
   });
@@ -42,7 +41,7 @@ export default function AdminProjectDetail() {
 
   useEffect(() => {
     setLoading(true);
-    apiFetch(`/portfolio/${id}`)
+    apiFetch(`/admin/portfolio/${id}`)
       .then(res => res.json())
       .then(data => {
         setProject(data);
@@ -85,7 +84,7 @@ export default function AdminProjectDetail() {
     setLoading(true);
     setError('');
     try {
-      const res = await apiFetch(`/portfolio/${id}`, {
+      const res = await apiFetch(`/admin/portfolio/${id}`, {
         method: 'PUT',
         body: JSON.stringify(form),
       });
@@ -106,7 +105,7 @@ export default function AdminProjectDetail() {
     // Single image upload (for backward compatibility)
     const fd = new FormData();
     fd.append('images', file);
-    const res = await apiFetch('/upload', { method: 'POST', body: fd });
+    const res = await apiFetch('/admin/upload', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.path) return data.path;
     throw new Error('Upload failed');
@@ -116,7 +115,7 @@ export default function AdminProjectDetail() {
     const fd = new FormData();
     files.forEach(file => fd.append('images', file));
     try {
-      const res = await apiFetch('/upload', { method: 'POST', body: fd });
+      const res = await apiFetch('/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (data.paths) return data.paths;
       if (data.path) return [data.path];

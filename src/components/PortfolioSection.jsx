@@ -17,14 +17,12 @@ export default function PortfolioSection() {
     { id: 'modern', name: 'Modern', icon: 'fas fa-cube' }
   ];
 
-  const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
   // Fetch portfolio data from backend
   useEffect(() => {
     const fetchPortfolioData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE}/portfolio`);
+        const response = await fetch(`/api/portfolio`);
         if (!response.ok) {
           throw new Error('Failed to fetch portfolio data');
         }
