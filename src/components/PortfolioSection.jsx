@@ -22,7 +22,8 @@ export default function PortfolioSection() {
     const fetchPortfolioData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/portfolio');
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${apiUrl}/portfolio`);
         if (!response.ok) {
           throw new Error('Failed to fetch portfolio data');
         }
