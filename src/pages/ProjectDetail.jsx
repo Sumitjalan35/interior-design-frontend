@@ -5,7 +5,8 @@ import AnimatedCard from '../components/AnimatedCard';
 // Function to fetch project data from API
 async function fetchProjectData(id) {
   try {
-    const response = await fetch(`/api/project/${id}`);
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const response = await fetch(`${apiUrl}/project/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch project data');
     }
