@@ -18,7 +18,7 @@ export default function BackgroundSlideshow({
   useEffect(() => {
     const fetchSlideshow = async () => {
       try {
-        const response = await slideshowAPI.getAll();
+        const response = await slideshowAPI.getAll(); // This now uses /api/slideshow
         if (response.data && response.data.length > 0) {
           setSlideshowImages(response.data);
         }

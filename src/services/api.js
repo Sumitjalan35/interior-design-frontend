@@ -90,7 +90,7 @@ export const adminAPI = {
 
 // Portfolio API
 export const portfolioAPI = {
-  getAll: () => api.get('/portfolio'),
+  getAll: () => api.get('/api/portfolio'),
   create: (portfolioData) => api.post('/admin/portfolio', portfolioData),
   update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
   delete: (id) => api.delete(`/admin/portfolio/${id}`),
@@ -106,7 +106,7 @@ export const servicesAPI = {
 
 // Slideshow API
 export const slideshowAPI = {
-  getAll: () => api.get('/slideshow', { 
+  getAll: () => api.get('/api/slideshow', { 
     params: { 
       _t: Date.now() // Cache busting
     } 
