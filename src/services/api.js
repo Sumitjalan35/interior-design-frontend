@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Use VITE_API_URL from environment, fallback to '/api' for local dev
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api', // Use env var or proxy
+  baseURL: API_BASE, // Use env variable for all API calls
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
