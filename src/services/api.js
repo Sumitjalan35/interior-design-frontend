@@ -54,12 +54,12 @@ export const authAPI = {
 
 // Contact API
 export const contactAPI = {
-  submit: (contactData) => api.post('/contact', contactData),
-  getAll: (params) => api.get('/contact', { params }),
-  getById: (id) => api.get(`/contact/${id}`),
+  submit: (contactData) => api.post('/api/contact', contactData),
+  getAll: (params) => api.get('/api/contact', { params }),
+  getById: (id) => api.get(`/api/contact/${id}`),
   updateStatus: (id, status) => api.put(`/contact/${id}`, { status }),
-  delete: (id) => api.delete(`/contact/${id}`),
-  getStats: () => api.get('/contact/stats/overview'),
+  delete: (id) => api.delete(`/api/contact/${id}`),
+  getStats: () => api.get('/api/contact/stats/overview'),
 };
 
 // Projects API
