@@ -9,7 +9,8 @@ function getToken() {
 }
 
 function apiFetch(url, opts = {}) {
-  return fetch(url, {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  return fetch(apiUrl + url.replace(/^\/api/, ''), {
     ...opts,
     headers: {
       ...(opts.headers || {}),
@@ -45,9 +46,9 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     Promise.all([
-      apiFetch('/api/admin/portfolio').then(r => r.json()),
-      apiFetch('/api/admin/services').then(r => r.json()),
-      apiFetch('/api/admin/slideshow').then(r => r.json()),
+      apiFetch('/portfolio').then(r => r.json()),
+      apiFetch('/services').then(r => r.json()),
+      apiFetch('/slideshow').then(r => r.json()),
     ]).then(([p, s, ss]) => {
       setPortfolio(p);
       setServices(s);
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
   async function uploadImage(file) {
     const fd = new FormData();
     fd.append('images', file);
-    const res = await apiFetch('/api/admin/upload', { method: 'POST', body: fd });
+    const res = await apiFetch('/upload', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.path) return data.path;
     throw new Error('Upload failed');
@@ -102,7 +103,7 @@ export default function AdminDashboard() {
       let image = form.image;
       if (imgFile) image = await uploadImage(imgFile);
       let body = { ...form, image };
-      let url = `/api/admin/${type}`;
+      let url = `/${type}`;
       let method = 'POST';
       if (form.id) {
         url += `/${form.id}`;
@@ -126,7 +127,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure?')) return;
     setLoading(true);
     try {
-      const res = await apiFetch(`/api/admin/${type}/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/${type}/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       loadAll();
     } catch (e) {
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
       let image = null;
       if (imgFile) image = await uploadImage(imgFile);
       if (!image) throw new Error('No image');
-      const res = await apiFetch('/api/admin/slideshow', {
+      const res = await apiFetch('/slideshow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image }),
@@ -150,7 +151,7 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error('Add failed');
       closeModal();
       // Force refresh slideshow data specifically
-      const slideshowRes = await apiFetch('/api/admin/slideshow');
+      const slideshowRes = await apiFetch('/slideshow');
       const newSlideshow = await slideshowRes.json();
       setSlideshow(newSlideshow);
       // Also refresh other data
@@ -167,7 +168,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Remove this image?')) return;
     setLoading(true);
     try {
-      const res = await apiFetch(`/api/admin/slideshow/${idx}`, { method: 'DELETE' });
+      const res = await apiFetch(`/slideshow/${idx}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       loadAll();
       // Show success message
@@ -323,7 +324,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold">Slideshow Images</h2>
                 <div className="flex gap-2">
                   <button onClick={() => {
-                    const slideshowRes = apiFetch('/api/admin/slideshow');
+                    const slideshowRes = apiFetch('/slideshow');
                     slideshowRes.then(r => r.json()).then(data => {
                       setSlideshow(data);
                     });
