@@ -7,12 +7,13 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${apiUrl}/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: username, password })
@@ -37,7 +38,7 @@ export default function AdminLogin() {
         <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="input-dark" required />
         {error && <div className="text-red-400 text-sm text-center">{error}</div>}
         <button type="submit" className="btn-primary w-full">Login</button>
-          </form>
+      </form>
     </div>
   );
 } 

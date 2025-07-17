@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  aseURL: import.meta.env.VITE_API_URL || '/api', // Use env variable in production
+  baseURL: import.meta.env.VITE_API_URL || '/api', // Use env var or proxy
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -17,13 +17,14 @@ export default function PortfolioSection() {
     { id: 'modern', name: 'Modern', icon: 'fas fa-cube' }
   ];
 
+  const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
   // Fetch portfolio data from backend
   useEffect(() => {
     const fetchPortfolioData = async () => {
       try {
         setLoading(true);
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${apiUrl}/portfolio`);
+        const response = await fetch(`${API_BASE}/portfolio`);
         if (!response.ok) {
           throw new Error('Failed to fetch portfolio data');
         }
@@ -159,12 +160,12 @@ export default function PortfolioSection() {
         }`}>
           {filteredProjects.map((project, index) => (
             <Link key={project.id} to={`/project/${project.id}`}>
-            <AnimatedCard
-              className="group cursor-pointer overflow-hidden"
-              hoverEffect={true}
-              parallax={true}
-              delay={index * 100}
-            >
+              <AnimatedCard
+                className="group cursor-pointer overflow-hidden"
+                hoverEffect={true}
+                parallax={true}
+                delay={index * 100}
+              >
               <div className="relative h-80 overflow-hidden">
                 <img 
                   src={project.image} 

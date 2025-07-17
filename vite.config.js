@@ -14,8 +14,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5001',
-      '/uploads': 'http://localhost:5001',
+      '/api': process.env.VITE_API_URL || 'http://localhost:5001',
+      '/uploads': process.env.VITE_API_URL || 'http://localhost:5001',
     },
   },
 }) 

@@ -5,8 +5,8 @@ function getToken() {
   return localStorage.getItem('admin_token');
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 function apiFetch(url, opts = {}) {
-  const apiUrl = import.meta.env.VITE_API_URL;
   const headers = {
     ...(opts.headers || {}),
     Authorization: `Bearer ${getToken()}`,
@@ -18,7 +18,7 @@ function apiFetch(url, opts = {}) {
     headers['Content-Type'] = 'application/json';
   }
   
-  return fetch(apiUrl + url.replace(/^\/api/, ''), {
+  return fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
     ...opts,
     headers,
   });
@@ -42,7 +42,7 @@ export default function AdminProjectDetail() {
 
   useEffect(() => {
     setLoading(true);
-    apiFetch(`/admin/portfolio/${id}`)
+    apiFetch(`/portfolio/${id}`)
       .then(res => res.json())
       .then(data => {
         setProject(data);
@@ -85,7 +85,7 @@ export default function AdminProjectDetail() {
     setLoading(true);
     setError('');
     try {
-      const res = await apiFetch(`/admin/portfolio/${id}`, {
+      const res = await apiFetch(`/portfolio/${id}`, {
         method: 'PUT',
         body: JSON.stringify(form),
       });

@@ -8,9 +8,9 @@ function getToken() {
   return localStorage.getItem('admin_token');
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 function apiFetch(url, opts = {}) {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  return fetch(apiUrl + url.replace(/^\/api/, ''), {
+  return fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
     ...opts,
     headers: {
       ...(opts.headers || {}),
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
   function renderModal() {
     if (!modal) return null;
     if (modal.type === 'portfolio' || modal.type === 'services') {
-  return (
+      return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-charcoal-800 p-8 rounded-xl shadow-xl w-full max-w-md flex flex-col gap-4 relative">
             <button onClick={closeModal} className="absolute top-2 right-4 text-gold-400 text-2xl">&times;</button>
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
             {imgPreview && <ImagePreview src={imgPreview} alt="Preview" />}
             <button onClick={handleAddSlideshow} className="btn-primary w-full">Add Image</button>
           </div>
-              </div>
+        </div>
       );
     }
     if (modal.type === 'portfolioDetails') {
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
                 <div key={img + idx} className="relative">
                   <img src={img} alt="Project" className="w-16 h-16 object-cover rounded" />
                   <button type="button" onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center">&times;</button>
-              </div>
+                </div>
               ))}
             </div>
             <input type="text" placeholder="Add image URL and press Enter" className="input-dark" onKeyDown={e => {
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-lg font-semibold ${tab === t ? 'bg-gold-400 text-charcoal-900' : 'bg-charcoal-800 text-gold-400'}`}>{t}</button>
         ))}
-            </div>
+      </div>
       {loading ? <div>Loading...</div> : error ? <div className="text-red-400">{error}</div> : (
         <div>
           {tab === 'Portfolio' && (
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                         alt={card.title}
                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                       />
-              </div>
+                    </div>
                     <div className="py-6 text-center">
                       <div className="text-gold-400 text-xl font-playfair font-medium tracking-wide">{card.title}</div>
                       <div className="text-xs text-cream-300 mt-1 uppercase tracking-widest">{card.category}</div>
@@ -287,18 +287,18 @@ export default function AdminDashboard() {
                     <div className="absolute top-2 right-2 flex flex-col gap-2 z-10" onClick={e => e.stopPropagation()}>
                       <button onClick={() => openModal('portfolio', card)} className="btn-secondary text-xs">Edit</button>
                       <button onClick={() => handleDelete('portfolio', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             </div>
           )}
           {tab === 'Services' && (
-                    <div>
+            <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Service Cards</h2>
                 <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
-                  </div>
+              </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
                 {services.map((card, idx) => (
                   <div key={card.id} className="relative">
@@ -312,14 +312,14 @@ export default function AdminDashboard() {
                     <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                       <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
                       <button onClick={() => handleDelete('services', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             </div>
           )}
           {tab === 'Slideshow' && (
-                    <div>
+            <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Slideshow Images</h2>
                 <div className="flex gap-2">
@@ -336,8 +336,8 @@ export default function AdminDashboard() {
                 <p className="text-blue-300 text-sm">
                   <i className="fas fa-info-circle mr-2"></i>
                   Changes to slideshow images will automatically appear on the main page within 30 seconds.
-                      </p>
-                    </div>
+                </p>
+              </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {slideshow.map((img, idx) => (
                   <div key={img + idx} className="relative group overflow-hidden rounded-xl shadow-lg border border-gold-400/20 bg-black/70">
@@ -358,10 +358,10 @@ export default function AdminDashboard() {
                     >
                       &times;
                     </button>
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
           )}
         </div>
       )}
