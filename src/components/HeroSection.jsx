@@ -29,7 +29,7 @@ export default function HeroSection() {
   // Fetch slideshow images from API
   const fetchSlideshow = async () => {
     try {
-      const response = await slideshowAPI.getAll(); // This now uses /api/slideshow
+      const response = await slideshowAPI.getAll();
       if (response.data && response.data.length > 0) {
         // Filter out invalid image URLs and ensure they're accessible
         const validSlides = response.data.filter(src => {

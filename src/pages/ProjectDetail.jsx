@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import AnimatedCard from '../components/AnimatedCard';
-import { apiFetch } from '../services/api';
 
 // Function to fetch project data from API
 async function fetchProjectData(id) {
   try {
-    const response = await apiFetch(`/portfolio/${id}`);
+    const response = await fetch(`/api/project/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch project data');
     }

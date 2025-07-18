@@ -1,17 +1,8 @@
 import axios from 'axios';
 
-// Use VITE_API_URL from environment, fallback to '/api' for local dev
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
-export function apiFetch(url, opts = {}) {
-  // Always ensure /api/ prefix
-  const path = url.startsWith('/api/') ? url : `/api${url.startsWith('/') ? url : '/' + url}`;
-  return fetch(`${API_BASE}${path}`, opts);
-}
-
 // Create axios instance
 const api = axios.create({
-  baseURL: API_BASE, // Use env variable for all API calls
+  baseURL: '/api', // Use relative path for all API calls
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -60,12 +51,12 @@ export const authAPI = {
 
 // Contact API
 export const contactAPI = {
-  submit: (contactData) => api.post('/api/contact', contactData),
-  getAll: (params) => api.get('/api/contact', { params }),
-  getById: (id) => api.get(`/api/contact/${id}`),
+  submit: (contactData) => api.post('/contact', contactData),
+  getAll: (params) => api.get('/contact', { params }),
+  getById: (id) => api.get(`/contact/${id}`),
   updateStatus: (id, status) => api.put(`/contact/${id}`, { status }),
-  delete: (id) => api.delete(`/api/contact/${id}`),
-  getStats: () => api.get('/api/contact/stats/overview'),
+  delete: (id) => api.delete(`/contact/${id}`),
+  getStats: () => api.get('/contact/stats/overview'),
 };
 
 // Projects API
@@ -96,7 +87,7 @@ export const adminAPI = {
 
 // Portfolio API
 export const portfolioAPI = {
-  getAll: () => api.get('/api/portfolio'),
+  getAll: () => api.get('/portfolio'),
   create: (portfolioData) => api.post('/admin/portfolio', portfolioData),
   update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
   delete: (id) => api.delete(`/admin/portfolio/${id}`),
@@ -112,7 +103,7 @@ export const servicesAPI = {
 
 // Slideshow API
 export const slideshowAPI = {
-  getAll: () => api.get('/api/slideshow', { 
+  getAll: () => api.get('/slideshow', { 
     params: { 
       _t: Date.now() // Cache busting
     } 

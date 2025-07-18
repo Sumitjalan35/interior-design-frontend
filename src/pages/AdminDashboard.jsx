@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
-import { apiFetch } from '../services/api';
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
+
+function getToken() {
+  return localStorage.getItem('admin_token');
+}
+
+function apiFetch(url, opts = {}) {
+  return fetch(`/api${url.startsWith('/') ? url : '/' + url}`, {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+}
 
 function ImagePreview({ src, alt }) {
   return src ? <img src={src} alt={alt} className="w-24 h-24 object-cover rounded shadow" /> : null;
@@ -24,7 +37,7 @@ export default function AdminDashboard() {
 
   // Auth check
   useEffect(() => {
-    if (!localStorage.getItem('admin_token')) navigate('/admin-login');
+    if (!getToken()) navigate('/admin-login');
   }, [navigate]);
 
   // Load data
@@ -310,7 +323,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold">Slideshow Images</h2>
                 <div className="flex gap-2">
                   <button onClick={() => {
-                    const slideshowRes = apiFetch('/api/slideshow');
+                    const slideshowRes = apiFetch('/slideshow');
                     slideshowRes.then(r => r.json()).then(data => {
                       setSlideshow(data);
                     });
