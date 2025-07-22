@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
+import { portfolioAPI, servicesAPI, slideshowAPI } from '../services/api';
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
 
@@ -45,9 +46,9 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     Promise.all([
-      apiFetch('/portfolio').then(r => r.json()),
-      apiFetch('/services').then(r => r.json()),
-      apiFetch('/slideshow').then(r => r.json()),
+      portfolioAPI.getAll().then(r => r.data),
+      servicesAPI.getAll().then(r => r.data),
+      slideshowAPI.getAll().then(r => r.data),
     ]).then(([p, s, ss]) => {
       setPortfolio(p);
       setServices(s);

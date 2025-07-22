@@ -1,26 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { portfolioAPI } from '../services/api';
+import api from '../services/api';
 
 function getToken() {
   return localStorage.getItem('admin_token');
-}
-
-function apiFetch(url, opts = {}) {
-  const headers = {
-    ...(opts.headers || {}),
-    Authorization: `Bearer ${getToken()}`,
-  };
-  
-  // Don't set Content-Type for FormData (file uploads)
-  // Let the browser set it automatically for multipart/form-data
-  if (!(opts.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-  
-  return fetch(`/api${url.startsWith('/') ? url : '/' + url}`, {
-    ...opts,
-    headers,
-  });
 }
 
 export default function AdminProjectDetail() {
@@ -41,9 +25,9 @@ export default function AdminProjectDetail() {
 
   useEffect(() => {
     setLoading(true);
-    apiFetch(`/admin/portfolio/${id}`)
-      .then(res => res.json())
-      .then(data => {
+    portfolioAPI.getAll()
+      .then(res => {
+        const data = res.data.find(item => String(item.id) === String(id));
         setProject(data);
         setForm(data);
         setLoading(false);
@@ -84,12 +68,9 @@ export default function AdminProjectDetail() {
     setLoading(true);
     setError('');
     try {
-      const res = await apiFetch(`/admin/portfolio/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error('Save failed');
-      const updated = await res.json();
+      const res = await portfolioAPI.update(id, form);
+      if (res.status !== 200) throw new Error('Save failed');
+      const updated = res.data;
       setProject(updated);
       setForm(updated);
       setEditing(false);
@@ -105,8 +86,8 @@ export default function AdminProjectDetail() {
     // Single image upload (for backward compatibility)
     const fd = new FormData();
     fd.append('images', file);
-    const res = await apiFetch('/admin/upload', { method: 'POST', body: fd });
-    const data = await res.json();
+    const res = await api.post('/admin/upload', fd);
+    const data = res.data;
     if (data.path) return data.path;
     throw new Error('Upload failed');
   }
@@ -115,8 +96,8 @@ export default function AdminProjectDetail() {
     const fd = new FormData();
     files.forEach(file => fd.append('images', file));
     try {
-      const res = await apiFetch('/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
+      const res = await api.post('/admin/upload', fd);
+      const data = res.data;
       if (data.paths) return data.paths;
       if (data.path) return [data.path];
       throw new Error('Upload failed');

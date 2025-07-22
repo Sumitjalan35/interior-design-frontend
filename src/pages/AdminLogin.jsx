@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -11,12 +12,8 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: username, password })
-      });
-      const data = await res.json();
+      const res = await authAPI.login({ email: username, password });
+      const data = res.data;
       if (data.success && data.data && data.data.token) {
         localStorage.setItem('admin_token', data.data.token);
         navigate('/admin');

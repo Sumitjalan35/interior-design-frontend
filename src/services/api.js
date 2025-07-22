@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env.VITE_API_URL;
+if (!apiBaseUrl) {
+  throw new Error('VITE_API_URL environment variable must be set for production.');
+}
 // Create axios instance
 const api = axios.create({
-  baseURL: '/api', // Use relative path for all API calls
+  baseURL: `${apiBaseUrl}/api`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

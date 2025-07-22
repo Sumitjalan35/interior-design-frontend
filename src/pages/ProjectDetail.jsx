@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import AnimatedCard from '../components/AnimatedCard';
+import { portfolioAPI } from '../services/api';
 
 // Function to fetch project data from API
 async function fetchProjectData(id) {
   try {
-    const response = await fetch(`/api/project/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch project data');
+    const response = await portfolioAPI.getAll();
+    if (response.data && Array.isArray(response.data)) {
+      const project = response.data.find(p => String(p.id) === String(id));
+      if (!project) throw new Error('Project not found');
+      return project;
     }
-    return await response.json();
+    throw new Error('Failed to fetch project data');
   } catch (error) {
     console.error('Error fetching project data:', error);
     return null;

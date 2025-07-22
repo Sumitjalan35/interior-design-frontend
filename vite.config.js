@@ -12,10 +12,5 @@ export default defineConfig({
     include: /src\/.*\.jsx?$/,
     exclude: [],
   },
-  server: {
-    proxy: {
-      '/api': process.env.VITE_API_URL || 'http://localhost:5001',
-      '/uploads': process.env.VITE_API_URL || 'http://localhost:5001',
-    },
-  },
-}) 
+  // Production only: VITE_API_URL must be set in the environment for API calls
+}); 
