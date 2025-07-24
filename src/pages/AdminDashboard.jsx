@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
-import { portfolioAPI, servicesAPI, slideshowAPI, BACKEND_URL } from '../services/api';
+import { portfolioAPI, servicesAPI, slideshowAPI } from '../services/api';
+const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
 
@@ -52,8 +53,8 @@ export default function AdminDashboard() {
   async function uploadImage(file) {
     const fd = new FormData();
     fd.append('images', file);
-    // Use the new Cloudinary upload endpoint
-    const res = await fetch('/api/admin/upload-cloudinary', {
+    // Use the backend Cloudinary upload endpoint
+    const res = await fetch(`${apiBaseUrl}/api/admin/upload-cloudinary`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
