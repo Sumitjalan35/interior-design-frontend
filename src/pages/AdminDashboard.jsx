@@ -54,14 +54,16 @@ export default function AdminDashboard() {
   async function uploadImage(file) {
     const fd = new FormData();
     fd.append('images', file);
-    const token = localStorage.getItem('admin_token');
-    const res = await fetch(`${BACKEND_URL}/api/admin/upload`, {
+    // Use the new Cloudinary upload endpoint
+    const res = await fetch('/api/admin/upload-cloudinary', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
+      },
+      body: fd,
     });
     const data = await res.json();
-    if (data.path) return data.path;
+    if (data.url) return data.url;
     throw new Error('Upload failed');
   }
 
