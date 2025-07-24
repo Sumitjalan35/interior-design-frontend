@@ -120,3 +120,4 @@ export const slideshowAPI = {
 export const healthCheck = () => api.get('/health');
 
 export default api; 
+export const BACKEND_URL = import.meta.env.VITE_API_URL;
