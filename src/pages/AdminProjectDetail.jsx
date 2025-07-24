@@ -86,25 +86,20 @@ export default function AdminProjectDetail() {
     // Single image upload (for backward compatibility)
     const fd = new FormData();
     fd.append('images', file);
-    const res = await api.post('/admin/upload', fd);
+    const res = await api.post('/admin/upload-cloudinary', fd);
     const data = res.data;
-    if (data.path) return data.path;
+    if (data.url) return data.url;
     throw new Error('Upload failed');
   }
 
   async function uploadMultipleImages(files) {
-    const fd = new FormData();
-    files.forEach(file => fd.append('images', file));
-    try {
-      const res = await api.post('/admin/upload', fd);
-      const data = res.data;
-      if (data.paths) return data.paths;
-      if (data.path) return [data.path];
-      throw new Error('Upload failed');
-    } catch (err) {
-      console.error('Upload error:', err);
-      throw err;
+    // Cloudinary does not support multi-upload in one call, so upload sequentially
+    const urls = [];
+    for (const file of files) {
+      const url = await uploadImage(file);
+      urls.push(url);
     }
+    return urls;
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gold-400">Loading...</div>;
