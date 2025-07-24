@@ -5,8 +5,6 @@ import { portfolioAPI, servicesAPI, slideshowAPI, BACKEND_URL } from '../service
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
 
-const getImageUrl = (path) => path && path.startsWith('/uploads/') && BACKEND_URL ? `${BACKEND_URL}${path}` : path;
-
 function ImagePreview({ src, alt }) {
   return src ? <img src={src} alt={alt} className="w-24 h-24 object-cover rounded shadow" /> : null;
 }
@@ -71,7 +69,7 @@ export default function AdminDashboard() {
     setModal({ type, ...data });
     setForm(data);
     setImgFile(null);
-    setImgPreview(data.image ? getImageUrl(data.image) : null);
+    setImgPreview(data.image ? data.image : null);
   }
 
   function closeModal() {
@@ -217,7 +215,7 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap gap-2 mb-2">
               {(form.images || []).map((img, idx) => (
                 <div key={img + idx} className="relative">
-                  <img src={getImageUrl(img)} alt="Project" className="w-16 h-16 object-cover rounded" />
+                  <img src={img} alt="Project" className="w-16 h-16 object-cover rounded" />
                   <button type="button" onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center">&times;</button>
                 </div>
               ))}
@@ -262,7 +260,7 @@ export default function AdminDashboard() {
                   >
                     <div className="overflow-hidden w-full aspect-square flex items-center justify-center bg-[#222]">
                       <img
-                        src={getImageUrl(card.image)}
+                        src={card.image}
                         alt={card.title}
                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                       />
@@ -330,7 +328,7 @@ export default function AdminDashboard() {
                 {slideshow.map((img, idx) => (
                   <div key={img + idx} className="relative group overflow-hidden rounded-xl shadow-lg border border-gold-400/20 bg-black/70">
                     <img
-                      src={getImageUrl(img)}
+                      src={img}
                       alt={`Slideshow ${idx + 1}`}
                       className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={e => {
