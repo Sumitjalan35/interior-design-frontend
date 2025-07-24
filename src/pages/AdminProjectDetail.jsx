@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { portfolioAPI } from '../services/api';
 import api from '../services/api';
+const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 function getToken() {
   return localStorage.getItem('admin_token');
@@ -86,8 +87,15 @@ export default function AdminProjectDetail() {
     // Single image upload (for backward compatibility)
     const fd = new FormData();
     fd.append('images', file);
-    const res = await api.post('/admin/upload-cloudinary', fd);
-    const data = res.data;
+    const res = await fetch(`${apiBaseUrl}/api/admin/upload-cloudinary`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
+        // Do NOT set 'Content-Type' here!
+      },
+      body: fd,
+    });
+    const data = await res.json();
     if (data.url) return data.url;
     throw new Error('Upload failed');
   }
@@ -96,8 +104,19 @@ export default function AdminProjectDetail() {
     // Cloudinary does not support multi-upload in one call, so upload sequentially
     const urls = [];
     for (const file of files) {
-      const url = await uploadImage(file);
-      urls.push(url);
+      const fd = new FormData();
+      fd.append('images', file);
+      const res = await fetch(`${apiBaseUrl}/api/admin/upload-cloudinary`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
+          // Do NOT set 'Content-Type' here!
+        },
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.url) urls.push(data.url);
+      else throw new Error('Upload failed');
     }
     return urls;
   }
