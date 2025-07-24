@@ -1,83 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
+import { portfolioAPI, servicesAPI, slideshowAPI, BACKEND_URL } from '../services/api';
 
 const TABS = ['Portfolio', 'Services', 'Slideshow'];
 
-function getToken() {
-  return localStorage.getItem('admin_token');
-}
-
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
-function apiFetch(url, opts = {}) {
-  return fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
-    ...opts,
-    headers: {
-      ...(opts.headers || {}),
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
-}
+const getImageUrl = (path) => path && path.startsWith('/uploads/') && BACKEND_URL ? `${BACKEND_URL}${path}` : path;
 
 function ImagePreview({ src, alt }) {
   return src ? <img src={src} alt={alt} className="w-24 h-24 object-cover rounded shadow" /> : null;
 }
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState('Portfolio');
+  const navigate = useNavigate();
+  const [tab, setTab] = useState(TABS[0]);
   const [portfolio, setPortfolio] = useState([]);
   const [services, setServices] = useState([]);
   const [slideshow, setSlideshow] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [modal, setModal] = useState(null); // {type, data}
+  const [modal, setModal] = useState(null);
   const [form, setForm] = useState({});
   const [imgFile, setImgFile] = useState(null);
   const [imgPreview, setImgPreview] = useState(null);
-  const navigate = useNavigate();
 
   // Auth check
   useEffect(() => {
-    if (!getToken()) navigate('/admin-login');
+    if (!localStorage.getItem('admin_token')) navigate('/admin-login');
   }, [navigate]);
 
   // Load data
-  const loadAll = () => {
+  const loadAll = async () => {
     setLoading(true);
     setError('');
-    Promise.all([
-      apiFetch('/portfolio').then(r => r.json()),
-      apiFetch('/services').then(r => r.json()),
-      apiFetch('/slideshow').then(r => r.json()),
-    ]).then(([p, s, ss]) => {
-      setPortfolio(p);
-      setServices(s);
-      setSlideshow(ss);
-      setLoading(false);
-    }).catch(() => {
+    try {
+      const [p, s, ss] = await Promise.all([
+        portfolioAPI.getAll().then(r => r.data),
+        servicesAPI.getAll().then(r => r.data),
+        slideshowAPI.getAll().then(r => r.data),
+      ]);
+      setPortfolio(Array.isArray(p) ? p : []);
+      setServices(Array.isArray(s) ? s : []);
+      setSlideshow(Array.isArray(ss) ? ss : []);
+    } catch (e) {
       setError('Failed to load admin data');
+    } finally {
       setLoading(false);
-    });
+    }
   };
-  useEffect(loadAll, []);
 
-  // Image upload helper
+  useEffect(() => { loadAll(); }, []);
+
   async function uploadImage(file) {
     const fd = new FormData();
     fd.append('images', file);
-    const res = await apiFetch('/admin/upload', { method: 'POST', body: fd });
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch(`${BACKEND_URL}/api/admin/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd
+    });
     const data = await res.json();
     if (data.path) return data.path;
     throw new Error('Upload failed');
   }
 
-  // Modal open/close helpers
   function openModal(type, data = {}) {
+    setModal({ type, ...data });
     setForm(data);
     setImgFile(null);
-    setImgPreview(data.image || null);
-    setModal({ type, data });
+    setImgPreview(data.image ? getImageUrl(data.image) : null);
   }
+
   function closeModal() {
     setModal(null);
     setForm({});
@@ -85,36 +79,35 @@ export default function AdminDashboard() {
     setImgPreview(null);
   }
 
-  // Handle form input
   function handleChange(e) {
-    const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   }
+
   function handleImgChange(e) {
     const file = e.target.files[0];
     setImgFile(file);
     setImgPreview(file ? URL.createObjectURL(file) : null);
   }
 
-  // CRUD handlers
   async function handleSave(type) {
     setLoading(true);
     try {
       let image = form.image;
       if (imgFile) image = await uploadImage(imgFile);
       let body = { ...form, image };
-      let url = `/${type}`;
-      let method = 'POST';
-      if (form.id) {
-        url += `/${form.id}`;
-        method = 'PUT';
+      if (type === 'portfolio') {
+        if (form.id) {
+          await portfolioAPI.update(form.id, body);
+        } else {
+          await portfolioAPI.create(body);
+        }
+      } else if (type === 'services') {
+        if (form.id) {
+          await servicesAPI.update(form.id, body);
+        } else {
+          await servicesAPI.create(body);
+        }
       }
-      const res = await apiFetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error('Save failed');
       closeModal();
       loadAll();
     } catch (e) {
@@ -123,12 +116,16 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }
+
   async function handleDelete(type, id) {
     if (!window.confirm('Are you sure?')) return;
     setLoading(true);
     try {
-      const res = await apiFetch(`/${type}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      if (type === 'portfolio') {
+        await portfolioAPI.delete(id);
+      } else if (type === 'services') {
+        await servicesAPI.delete(id);
+      }
       loadAll();
     } catch (e) {
       setError(e.message);
@@ -136,27 +133,18 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }
-  // Slideshow add/delete
+
   async function handleAddSlideshow() {
     setLoading(true);
     try {
       let image = null;
       if (imgFile) image = await uploadImage(imgFile);
       if (!image) throw new Error('No image');
-      const res = await apiFetch('/slideshow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image }),
-      });
-      if (!res.ok) throw new Error('Add failed');
+      await slideshowAPI.add({ image });
       closeModal();
-      // Force refresh slideshow data specifically
-      const slideshowRes = await apiFetch('/slideshow');
-      const newSlideshow = await slideshowRes.json();
-      setSlideshow(newSlideshow);
-      // Also refresh other data
+      const ss = await slideshowAPI.getAll().then(r => r.data);
+      setSlideshow(Array.isArray(ss) ? ss : []);
       loadAll();
-      // Show success message
       alert('Slideshow image added successfully! The main page will update automatically.');
     } catch (e) {
       setError(e.message);
@@ -164,14 +152,13 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }
+
   async function handleDeleteSlideshow(idx) {
     if (!window.confirm('Remove this image?')) return;
     setLoading(true);
     try {
-      const res = await apiFetch(`/slideshow/${idx}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      await slideshowAPI.delete(idx);
       loadAll();
-      // Show success message
       alert('Slideshow image removed successfully! The main page will update automatically.');
     } catch (e) {
       setError(e.message);
@@ -228,7 +215,7 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap gap-2 mb-2">
               {(form.images || []).map((img, idx) => (
                 <div key={img + idx} className="relative">
-                  <img src={img} alt="Project" className="w-16 h-16 object-cover rounded" />
+                  <img src={getImageUrl(img)} alt="Project" className="w-16 h-16 object-cover rounded" />
                   <button type="button" onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center">&times;</button>
                 </div>
               ))}
@@ -273,7 +260,7 @@ export default function AdminDashboard() {
                   >
                     <div className="overflow-hidden w-full aspect-square flex items-center justify-center bg-[#222]">
                       <img
-                        src={card.image}
+                        src={getImageUrl(card.image)}
                         alt={card.title}
                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                       />
@@ -324,9 +311,8 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold">Slideshow Images</h2>
                 <div className="flex gap-2">
                   <button onClick={() => {
-                    const slideshowRes = apiFetch('/slideshow');
-                    slideshowRes.then(r => r.json()).then(data => {
-                      setSlideshow(data);
+                    slideshowAPI.getAll().then(r => r.data).then(data => {
+                      setSlideshow(Array.isArray(data) ? data : []);
                     });
                   }} className="btn-secondary">Refresh</button>
                   <button onClick={() => openModal('slideshow')} className="btn-primary">Add Image</button>
@@ -342,7 +328,7 @@ export default function AdminDashboard() {
                 {slideshow.map((img, idx) => (
                   <div key={img + idx} className="relative group overflow-hidden rounded-xl shadow-lg border border-gold-400/20 bg-black/70">
                     <img
-                      src={img}
+                      src={getImageUrl(img)}
                       alt={`Slideshow ${idx + 1}`}
                       className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={e => {
