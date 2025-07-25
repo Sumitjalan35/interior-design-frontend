@@ -1,18 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { slideshowAPI } from "../services/api";
 
-const defaultImages = [
-  // Web-optimized Unsplash images (can be replaced with your own)
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1460518451285-97b6aa326961?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1200&q=80",
-];
-
-export default function BackgroundSlideshow({ 
-  images = defaultImages, 
-  interval = 5000 
-}) {
-  const [slideshowImages, setSlideshowImages] = useState(images);
+export default function BackgroundSlideshow({ interval = 5000 }) {
+  const [slideshowImages, setSlideshowImages] = useState([]);
 
   // Fetch slideshow images from API
   useEffect(() => {
@@ -21,19 +11,20 @@ export default function BackgroundSlideshow({
         const response = await slideshowAPI.getAll();
         if (response.data && response.data.length > 0) {
           setSlideshowImages(response.data);
+        } else {
+          setSlideshowImages([]);
         }
       } catch (err) {
-        console.error('Error fetching slideshow:', err);
-        // Keep using default images if API fails
+        setSlideshowImages([]);
       }
     };
-
     fetchSlideshow();
   }, []);
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
 
   useEffect(() => {
+    if (slideshowImages.length === 0) return;
     let fadeTimeout;
     let slideTimeout;
     function nextSlide() {
@@ -49,6 +40,10 @@ export default function BackgroundSlideshow({
       clearTimeout(fadeTimeout);
     };
   }, [interval, slideshowImages.length]);
+
+  if (slideshowImages.length === 0) {
+    return null; // or a placeholder div if you want
+  }
 
   return (
     <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">

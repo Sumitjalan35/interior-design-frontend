@@ -5,24 +5,10 @@ import { slideshowAPI } from '../services/api';
 const BRAND_LOGO = '/assets/logo.png'; // Update with your logo path
 const BRAND_NAME = 'BEYOND BLUEPRINT';
 
-// Fallback slides in case API fails
-const FALLBACK_SLIDES = [
-  '/assets/slideshow/1-2.jpg',
-  '/assets/slideshow/3-18 (2).jpg',
-  '/assets/slideshow/4-21 (1).jpg',
-  '/assets/slideshow/1.2-1.png',
-  '/assets/slideshow/2-18.png',
-  '/assets/slideshow/2.2.png',
-  '/assets/slideshow/3-3 (1).png',
-  '/assets/slideshow/3-7.png',
-  '/assets/slideshow/3.1.png',
-  '/assets/slideshow/6-14.png',
-];
-
 export default function HeroSection() {
   const [current, setCurrent] = useState(0);
   const [fade, setFade] = useState(true);
-  const [slides, setSlides] = useState(FALLBACK_SLIDES);
+  const [slides, setSlides] = useState([]);
   const [lastFetch, setLastFetch] = useState(0);
   const timeoutRef = useRef(null);
 
@@ -33,28 +19,26 @@ export default function HeroSection() {
       if (response.data && response.data.length > 0) {
         // Filter out invalid image URLs and ensure they're accessible
         const validSlides = response.data.filter(src => {
-          // Check if the image path is valid
           return src && (src.startsWith('/assets/') || src.startsWith('/uploads/') || src.startsWith('http'));
         });
-        setSlides(validSlides.length > 0 ? validSlides : FALLBACK_SLIDES);
+        setSlides(validSlides);
         setLastFetch(Date.now());
+      } else {
+        setSlides([]);
       }
     } catch (err) {
-      console.error('Error fetching slideshow:', err);
-      // Keep using fallback slides if API fails
+      setSlides([]);
     }
   };
 
   useEffect(() => {
     fetchSlideshow();
-    
-    // Set up periodic refresh every 30 seconds to catch admin updates
     const refreshInterval = setInterval(fetchSlideshow, 30000);
-    
     return () => clearInterval(refreshInterval);
   }, []);
 
   useEffect(() => {
+    if (slides.length === 0) return;
     setFade(false);
     const fadeTimeout = setTimeout(() => setFade(true), 200);
     const slideTimeout = setTimeout(() => {
@@ -66,6 +50,10 @@ export default function HeroSection() {
     };
   }, [current, slides.length]);
 
+  if (slides.length === 0) {
+    return null; // or a placeholder div if you want
+  }
+
   return (
     <section className="relative flex flex-col items-center justify-start min-h-screen w-screen overflow-hidden">
       {/* Dark gradient vignette overlay */}
@@ -76,14 +64,13 @@ export default function HeroSection() {
       {/* Slideshow images */}
       {slides.map((src, idx) => (
         <img
-          key={`${src}-${lastFetch}`} // Force re-render when data updates
+          key={`${src}-${lastFetch}`}
           src={src}
           alt="Luxury Interior Work"
           className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'} kenburns`}
           style={{ filter: 'contrast(1.08) saturate(1.1) brightness(1.05) drop-shadow(0 2px 8px rgba(0,0,0,0.08))' }}
           loading="eager"
           onError={(e) => {
-            // Optionally remove broken images from the slideshow
             e.target.style.display = 'none';
           }}
         />
