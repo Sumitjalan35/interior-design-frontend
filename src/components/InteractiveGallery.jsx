@@ -48,7 +48,7 @@ export default function InteractiveGallery({
 
   return (
     <>
-      <div className={`grid ${gridCols[columns]} gap-6 ${className}`}>
+      <div className={`grid ${gridCols[columns]} gap-4 sm:gap-6 ${className}`}>
         {items.map((item, index) => (
           <GalleryItem
             key={index}
@@ -63,10 +63,10 @@ export default function InteractiveGallery({
       {isLightboxOpen && selectedItem && (
         <div
           ref={lightboxRef}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-2 sm:px-0"
           onClick={closeLightbox}
         >
-          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+          <div className="relative w-full max-w-lg sm:max-w-2xl md:max-w-4xl max-h-[90vh] mx-auto">
             <button
               onClick={closeLightbox}
               className="absolute -top-12 right-0 text-white text-4xl hover:text-[#bfa074] transition-colors"

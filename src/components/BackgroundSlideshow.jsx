@@ -34,14 +34,20 @@ export default function BackgroundSlideshow({
   const [fade, setFade] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    let fadeTimeout;
+    let slideTimeout;
+    function nextSlide() {
       setFade(false);
-      setTimeout(() => {
+      fadeTimeout = setTimeout(() => {
         setIndex((prev) => (prev + 1) % slideshowImages.length);
         setFade(true);
       }, 600); // match fade duration
-    }, interval);
-    return () => clearInterval(timer);
+    }
+    slideTimeout = setInterval(nextSlide, interval);
+    return () => {
+      clearInterval(slideTimeout);
+      clearTimeout(fadeTimeout);
+    };
   }, [interval, slideshowImages.length]);
 
   return (
@@ -53,9 +59,10 @@ export default function BackgroundSlideshow({
           alt="Portfolio background"
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-600 ease-in-out
             ${i === index && fade ? 'opacity-100 scale-105 animate-kenburns' : 'opacity-0 scale-100'}
+            sm:object-cover sm:w-full sm:h-full md:object-cover md:w-full md:h-full lg:object-cover lg:w-full lg:h-full
           `}
           style={{
-            filter: 'brightness(1.15) saturate(1.1) blur(0.5px)', // Brighter, more vibrant, slight blur
+            filter: 'brightness(1.15) saturate(1.1) blur(0.5px)',
             transition: 'opacity 0.6s, transform 6s',
           }}
         />

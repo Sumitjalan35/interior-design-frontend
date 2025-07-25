@@ -57,11 +57,11 @@ export default function HeroSection() {
   useEffect(() => {
     setFade(false);
     const fadeTimeout = setTimeout(() => setFade(true), 200);
-    timeoutRef.current = setTimeout(() => {
+    const slideTimeout = setTimeout(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 2500);
     return () => {
-      clearTimeout(timeoutRef.current);
+      clearTimeout(slideTimeout);
       clearTimeout(fadeTimeout);
     };
   }, [current, slides.length]);

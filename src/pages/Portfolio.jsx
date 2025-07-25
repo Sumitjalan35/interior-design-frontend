@@ -66,26 +66,26 @@ export default function Portfolio() {
   return (
     <section className="min-h-screen bg-black pb-20 pt-8">
       {/* Logo and subtitle */}
-      <div className="flex flex-col items-center pt-8 pb-6">
-        <img src="/assets/slideshow/beyond_blueprint_Logo__7_-removebg-preview.png" alt="Logo" className="h-28 w-28 object-contain mb-2" />
-        <div className="text-gold-400 tracking-widest text-2xl font-playfair font-semibold uppercase mb-2">BEYOND BLUEPRINT</div>
+      <div className="flex flex-col items-center pt-8 pb-6 px-4 sm:px-6 lg:px-8">
+        <img src="/assets/slideshow/beyond_blueprint_Logo__7_-removebg-preview.png" alt="Logo" className="h-20 w-20 sm:h-28 sm:w-28 object-contain mb-2" />
+        <div className="text-gold-400 tracking-widest text-xl sm:text-2xl font-playfair font-semibold uppercase mb-2">BEYOND BLUEPRINT</div>
         <div className="text-gold-400 text-xs tracking-widest font-light mb-6">DESIGN GROUP</div>
-        <div className="text-gold-400 text-lg font-medium mb-2">Architecture | Interiors | Interior Styling | Furniture | Landscape</div>
+        <div className="text-gold-400 text-base sm:text-lg font-medium mb-2 text-center">Architecture | Interiors | Interior Styling | Furniture | Landscape</div>
       </div>
       {/* Category Filter */}
-      <div className="flex justify-center gap-4 mb-10">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10 px-2">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-5 py-2 rounded-full font-montserrat text-sm font-semibold transition-all duration-300 border border-gold-400/30 hover:bg-gold-400/10 ${selectedCategory === cat ? 'bg-gold-400/20 text-gold-400 border-gold-400' : 'text-cream-100'}`}
+            className={`px-3 sm:px-5 py-2 rounded-full font-montserrat text-xs sm:text-sm font-semibold transition-all duration-300 border border-gold-400/30 hover:bg-gold-400/10 ${selectedCategory === cat ? 'bg-gold-400/20 text-gold-400 border-gold-400' : 'text-cream-100'}`}
           >
             {cat}
           </button>
         ))}
       </div>
       {/* Portfolio grid */}
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-12">
         <AnimatePresence>
           {filteredProjects.map((project, idx) => (
             <motion.div

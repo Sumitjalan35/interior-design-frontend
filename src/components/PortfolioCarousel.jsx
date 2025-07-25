@@ -40,7 +40,7 @@ export default function PortfolioCarousel({ items = [] }) {
   return (
     <section className="relative pt-10 pb-16 bg-transparent flex flex-col items-center overflow-x-hidden">
       {/* Social Icons Vertical Bar - Fixed Position */}
-      <div className="fixed left-6 top-1/2 -translate-y-1/2 flex flex-col space-y-4 z-50">
+      <div className="fixed left-2 sm:left-6 top-1/2 -translate-y-1/2 flex flex-col space-y-4 z-50">
         {socialLinks.map((item, idx) => (
           <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-luxury shadow-lg hover:scale-110 transition-transform duration-300">
             <FontAwesomeIcon icon={item.icon} className="text-white text-xl" />
@@ -48,7 +48,7 @@ export default function PortfolioCarousel({ items = [] }) {
         ))}
       </div>
       {/* Carousel */}
-      <div className="relative flex items-center justify-center w-full max-w-5xl min-h-[420px] z-10">
+      <div className="relative flex items-center justify-center w-full max-w-xs sm:max-w-2xl md:max-w-5xl min-h-[320px] sm:min-h-[420px] z-10">
         {/* Previous Image */}
         {items.length > 1 && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-44 h-60 rounded-2xl overflow-hidden opacity-50 blur-sm scale-90 shadow-lg transition-all duration-500" style={{zIndex: 1}}>
@@ -56,7 +56,7 @@ export default function PortfolioCarousel({ items = [] }) {
           </div>
         )}
         {/* Center Image (larger size) */}
-        <div className="relative z-20 mx-8 rounded-2xl overflow-hidden shadow-2xl border-4 border-gradient-luxury animate-pulse-glow flex items-center justify-center w-96 h-[28rem] bg-black">
+        <div className="relative z-20 mx-2 sm:mx-8 rounded-2xl overflow-hidden shadow-2xl border-4 border-gradient-luxury animate-pulse-glow flex items-center justify-center w-64 sm:w-96 h-64 sm:h-[28rem] bg-black">
           <img src={items[current]?.image} alt={items[current]?.title} className="w-full h-full object-cover brightness-110 contrast-110 saturate-110" />
         </div>
         {/* Next Image */}
@@ -74,8 +74,8 @@ export default function PortfolioCarousel({ items = [] }) {
         </button>
       </div>
       {/* Project Info Card */}
-      <div className="bg-black/90 backdrop-blur-sm rounded-2xl px-8 py-8 shadow-xl w-full max-w-xl mx-auto text-center z-10 relative mt-8 border border-white/10">
-        <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-wide uppercase">
+      <div className="bg-black/90 backdrop-blur-sm rounded-2xl px-4 sm:px-8 py-8 shadow-xl w-full max-w-xs sm:max-w-xl mx-auto text-center z-10 relative mt-8 border border-white/10">
+        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 tracking-wide uppercase">
           {items[current]?.title}
         </h3>
         <p className="text-lg text-gray-300 mb-5">

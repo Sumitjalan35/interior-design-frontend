@@ -55,20 +55,20 @@ function TestimonialCarousel() {
   const next = () => setCurrent((c) => (c + 1) % total);
 
   return (
-    <section className="py-24 bg-black flex flex-col items-center">
-      <h2 className="text-3xl md:text-4xl font-bold mb-10 text-gold-400 tracking-wide" style={{fontFamily: 'Playfair Display, serif'}}>Client Testimonials</h2>
-      <div className="relative w-full max-w-6xl mx-auto flex items-center justify-center">
+    <section className="py-16 md:py-24 bg-black flex flex-col items-center px-2 sm:px-4">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-10 text-gold-400 tracking-wide" style={{fontFamily: 'Playfair Display, serif'}}>Client Testimonials</h2>
+      <div className="relative w-full max-w-xs sm:max-w-3xl md:max-w-6xl mx-auto flex items-center justify-center">
         {/* Left Arrow */}
         <button onClick={prev} className="absolute left-0 z-10 p-3 rounded-full bg-white/20 hover:bg-gold-400/80 text-gold-400 hover:text-charcoal-950 shadow-lg transition-all duration-200 -translate-y-1/2 top-1/2">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         {/* Cards */}
-        <div className="flex gap-8 w-full justify-center">
+        <div className="flex gap-4 md:gap-8 w-full justify-center">
           {Array.from({length: visible}).map((_, i) => {
             const idx = (current + i) % total;
             const t = TESTIMONIALS[idx];
             return (
-              <div key={t.name} className="glass-card rounded-2xl p-8 flex-1 min-w-[300px] max-w-sm shadow-xl border border-gold-400/30 backdrop-blur-xl bg-white/5 transition-transform duration-500 hover:scale-105">
+              <div key={t.name} className="glass-card rounded-2xl p-4 md:p-8 flex-1 min-w-[220px] md:min-w-[300px] max-w-xs md:max-w-sm shadow-xl border border-gold-400/30 backdrop-blur-xl bg-white/5 transition-transform duration-500 hover:scale-105">
                 <div className="flex items-center gap-4 mb-4">
                   <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-full object-cover border-2 border-gold-400 shadow" />
                   <div>
@@ -217,26 +217,26 @@ const Home = () => {
           />
           <div className="absolute inset-0 bg-black/70" />
         </div>
-        <div className="flex flex-col items-center pt-12 pb-6">
+        <div className="flex flex-col items-center pt-12 pb-6 px-4 sm:px-6 lg:px-8">
           <h2
-            className="text-6xl md:text-7xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-[#bfa074] to-[#fffbe6] drop-shadow-lg mb-2 font-serif uppercase"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-[#bfa074] to-[#fffbe6] drop-shadow-lg mb-2 font-serif uppercase"
             style={{ fontFamily: 'Playfair Display, serif', letterSpacing: '0.15em', textShadow: '0 4px 24px #bfa07499' }}
           >
             SERVICES
           </h2>
           <div className="text-[#bfa074] text-xs tracking-widest font-light mb-6">LUXURY INTERIOR DESIGN</div>
-          <div className="text-[#bfa074] text-lg font-medium mb-2 max-w-2xl text-center">Discover our range of bespoke interior design services, tailored to elevate your space with timeless elegance and modern luxury.</div>
+          <div className="text-[#bfa074] text-base sm:text-lg font-medium mb-2 max-w-2xl text-center">Discover our range of bespoke interior design services, tailored to elevate your space with timeless elegance and modern luxury.</div>
         </div>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10 px-4 sm:px-6 lg:px-8">
           {services.map((service, idx) => (
-            <div key={service.title} className="bg-charcoal-900/80 border border-bronze-400/30 rounded-2xl overflow-hidden shadow-xl transition-transform duration-300 hover:scale-105">
+            <div key={service.title} className="bg-charcoal-900/80 border border-bronze-400/30 rounded-2xl overflow-hidden shadow-xl transition-transform duration-300 hover:scale-105 flex flex-col">
               <img
                 src={service.image}
                 alt={service.title}
                 className="w-full aspect-square object-cover object-center transition duration-500"
               />
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-bronze-400 mb-2 tracking-wide uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>{service.title}</h3>
+              <div className="p-6 text-center flex-1 flex flex-col justify-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-bronze-400 mb-2 tracking-wide uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>{service.title}</h3>
               </div>
             </div>
           ))}
