@@ -4,7 +4,7 @@ import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
 import { portfolioAPI, servicesAPI, slideshowAPI } from '../services/api';
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
-const TABS = ['Portfolio', 'Services', 'Slideshow'];
+const TABS = ['Portfolio', 'Services', 'Slideshow', 'Sequence Management'];
 
 function ImagePreview({ src, alt }) {
   return src ? <img src={src} alt={alt} className="w-24 h-24 object-cover rounded shadow" /> : null;
@@ -161,6 +161,54 @@ export default function AdminDashboard() {
       await slideshowAPI.delete(idx);
       loadAll();
       alert('Slideshow image removed successfully! The main page will update automatically.');
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleMoveProject(index, direction) {
+    setLoading(true);
+    try {
+      const projects = [...portfolio];
+      const [movedItem, ...rest] = projects.splice(index, 1);
+      if (direction === 'up') {
+        projects.splice(index - 1, 0, movedItem);
+      } else {
+        projects.push(movedItem);
+      }
+      await portfolioAPI.updateSequence(projects.map((p, i) => ({ id: p.id, sequence: i })));
+      loadAll();
+      alert('Project sequence updated successfully!');
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSaveSequence() {
+    setLoading(true);
+    try {
+      await portfolioAPI.updateSequence(portfolio.map((p, i) => ({ id: p.id, sequence: i })));
+      loadAll();
+      alert('Project sequence saved successfully!');
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAutoSequence() {
+    setLoading(true);
+    try {
+      const projects = [...portfolio];
+      projects.sort((a, b) => a.title.localeCompare(b.title));
+      await portfolioAPI.updateSequence(projects.map((p, i) => ({ id: p.id, sequence: i })));
+      loadAll();
+      alert('Project sequence auto-saved successfully!');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -347,6 +395,63 @@ export default function AdminDashboard() {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+          {tab === 'Sequence Management' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
+                <button onClick={loadAll} className="btn-primary">Refresh</button>
+              </div>
+              
+              <div className="bg-charcoal-800/50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-cream-100 mb-4">Drag to reorder projects</h3>
+                <div className="space-y-2">
+                  {portfolio.map((project, index) => (
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between p-3 bg-charcoal-700/50 rounded-lg border border-charcoal-600 hover:border-bronze-400/50 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-bronze-400/20 text-bronze-400 rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="text-cream-100 font-medium">{project.title}</div>
+                          <div className="text-cream-300 text-sm">{project.category}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-bronze-400 text-sm">Sequence: {project.sequence || 0}</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleMoveProject(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 text-bronze-400 hover:text-gold-400 disabled:text-charcoal-600 disabled:cursor-not-allowed"
+                          >
+                            <i className="fas fa-chevron-up"></i>
+                          </button>
+                          <button
+                            onClick={() => handleMoveProject(index, 'down')}
+                            disabled={index === portfolio.length - 1}
+                            className="p-1 text-bronze-400 hover:text-gold-400 disabled:text-charcoal-600 disabled:cursor-not-allowed"
+                          >
+                            <i className="fas fa-chevron-down"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={handleSaveSequence} className="btn-primary">
+                    Save Sequence
+                  </button>
+                  <button onClick={handleAutoSequence} className="btn-secondary">
+                    Auto Sequence
+                  </button>
+                </div>
               </div>
             </div>
           )}
