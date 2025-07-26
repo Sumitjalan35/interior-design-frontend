@@ -36,6 +36,7 @@ const socialLinks = [
   { icon: faInstagram, url: 'https://www.instagram.com/beyond.blueprint/?igsh=cGd4ZTU1enJ3dDhy#', color: 'hover:bg-pink-600' },
   { icon: faLinkedinIn, url: 'https://www.linkedin.com/in/amannjalan/', color: 'hover:bg-blue-700' },
 ];
+
 export function HamburgerButton({ isOpen, onClick }) {
   return (
     <button
@@ -111,6 +112,15 @@ export default function SlidingMenu({ isOpen, onClose }) {
         </button>
         {/* Logo */}
         <img src="/assets/slideshow/beyond_blueprint_Logo__7_-removebg-preview.png" alt="Logo" className="w-24 h-24 mx-auto mb-2 object-contain" />
+        {/* Brand Name at the top of the menu */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-bronze-400 to-gold-400 flex items-center justify-center shadow-lg glass-effect">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-charcoal-950">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
+            </svg>
+          </div>
+          <span className="text-2xl font-extrabold tracking-tight gradient-text text-shadow-lg">Beyond Blueprint</span>
+        </div>
         {/* Menu Items */}
         <nav className="flex flex-col gap-7 w-full">
           <Link to="/" onClick={onClose} className="menu-luxury flex items-center gap-4 text-cream-100 text-2xl hover:text-bronze-400 transition-colors duration-200">
@@ -138,10 +148,12 @@ export default function SlidingMenu({ isOpen, onClose }) {
             <FontAwesomeIcon icon={faEnvelope} /> Contact
           </Link>
         </nav>
-        {/* Floating Action Button */}
-        <button className="fixed bottom-10 right-10 w-16 h-16 rounded-full bg-gradient-to-r from-bronze-500 to-gold-500 shadow-lg flex items-center justify-center text-3xl text-charcoal-950 hover:from-bronze-400 hover:to-gold-400 transition-all duration-200 animate-float hover:scale-110">
-          <FontAwesomeIcon icon={faPlus} />
-        </button>
+        {/* Removed floating action button as requested */}
+      </div>
+      {/* Extra: floating shapes for fun */}
+      <div className="pointer-events-none fixed inset-0 z-40">
+        <div className="absolute left-1/4 top-1/3 w-32 h-32 bg-bronze-400/10 rounded-full blur-2xl animate-float-slow" />
+        <div className="absolute right-1/4 bottom-1/4 w-24 h-24 bg-bronze-400/20 rounded-full blur-2xl animate-float" />
       </div>
       <style>{`
         @keyframes gradient-move {
