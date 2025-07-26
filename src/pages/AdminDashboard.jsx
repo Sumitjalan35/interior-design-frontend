@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
-import { portfolioAPI, servicesAPI, slideshowAPI } from '../services/api';
+import { portfolioAPI, servicesAPI, slideshowAPI, api } from '../services/api';
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 const TABS = ['Portfolio', 'Services', 'Slideshow', 'Sequence Management'];
@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [form, setForm] = useState({});
   const [imgFile, setImgFile] = useState(null);
   const [imgPreview, setImgPreview] = useState(null);
+  const [projects, setProjects] = useState([]);
 
   // Auth check
   useEffect(() => {
@@ -33,14 +34,16 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [p, s, ss] = await Promise.all([
+      const [p, s, ss, projects] = await Promise.all([
         portfolioAPI.getAll().then(r => r.data),
         servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
+        api.get('/projects/sequence').then(r => r.data),
       ]);
       setPortfolio(Array.isArray(p) ? p : []);
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
+      setProjects(Array.isArray(projects) ? projects : []);
     } catch (e) {
       setError('Failed to load admin data');
     } finally {
@@ -171,14 +174,16 @@ export default function AdminDashboard() {
   async function handleMoveProject(index, direction) {
     setLoading(true);
     try {
-      const projects = [...portfolio];
-      const [movedItem, ...rest] = projects.splice(index, 1);
+      const projectList = [...projects];
+      const [movedItem, ...rest] = projectList.splice(index, 1);
       if (direction === 'up') {
-        projects.splice(index - 1, 0, movedItem);
+        projectList.splice(index - 1, 0, movedItem);
       } else {
-        projects.push(movedItem);
+        projectList.push(movedItem);
       }
-      await portfolioAPI.updateSequence(projects.map((p, i) => ({ id: p.id, sequence: i })));
+      await api.put('/projects/sequence', { 
+        sequences: projectList.map((p, i) => ({ id: p._id, sequence: i })) 
+      });
       loadAll();
       alert('Project sequence updated successfully!');
     } catch (e) {
@@ -191,7 +196,9 @@ export default function AdminDashboard() {
   async function handleSaveSequence() {
     setLoading(true);
     try {
-      await portfolioAPI.updateSequence(portfolio.map((p, i) => ({ id: p.id, sequence: i })));
+      await api.put('/projects/sequence', { 
+        sequences: projects.map((p, i) => ({ id: p._id, sequence: i })) 
+      });
       loadAll();
       alert('Project sequence saved successfully!');
     } catch (e) {
@@ -204,9 +211,11 @@ export default function AdminDashboard() {
   async function handleAutoSequence() {
     setLoading(true);
     try {
-      const projects = [...portfolio];
-      projects.sort((a, b) => a.title.localeCompare(b.title));
-      await portfolioAPI.updateSequence(projects.map((p, i) => ({ id: p.id, sequence: i })));
+      const projectList = [...projects];
+      projectList.sort((a, b) => a.title.localeCompare(b.title));
+      await api.put('/projects/sequence', { 
+        sequences: projectList.map((p, i) => ({ id: p._id, sequence: i })) 
+      });
       loadAll();
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
@@ -408,9 +417,9 @@ export default function AdminDashboard() {
               <div className="bg-charcoal-800/50 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-cream-100 mb-4">Drag to reorder projects</h3>
                 <div className="space-y-2">
-                  {portfolio.map((project, index) => (
+                  {projects.map((project, index) => (
                     <div
-                      key={project.id}
+                      key={project._id}
                       className="flex items-center justify-between p-3 bg-charcoal-700/50 rounded-lg border border-charcoal-600 hover:border-bronze-400/50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
@@ -434,7 +443,7 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             onClick={() => handleMoveProject(index, 'down')}
-                            disabled={index === portfolio.length - 1}
+                            disabled={index === projects.length - 1}
                             className="p-1 text-bronze-400 hover:text-gold-400 disabled:text-charcoal-600 disabled:cursor-not-allowed"
                           >
                             <i className="fas fa-chevron-down"></i>
