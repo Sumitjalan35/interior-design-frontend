@@ -34,7 +34,7 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [p, s, ss, projects] = await Promise.all([
+      const [p, s, ss, projectsResponse] = await Promise.all([
         portfolioAPI.getAll().then(r => r.data),
         servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
@@ -43,8 +43,14 @@ export default function AdminDashboard() {
       setPortfolio(Array.isArray(p) ? p : []);
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
-      setProjects(Array.isArray(projects) ? projects : []);
+      
+      // Debug: Log the projects data structure
+      console.log('Projects data from /projects/sequence:', projectsResponse);
+      console.log('First project structure:', projectsResponse[0]);
+      
+      setProjects(Array.isArray(projectsResponse) ? projectsResponse : []);
     } catch (e) {
+      console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
     } finally {
       setLoading(false);
@@ -175,18 +181,26 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const projectList = [...projects];
-      const [movedItem, ...rest] = projectList.splice(index, 1);
+      const [movedItem] = projectList.splice(index, 1);
       if (direction === 'up') {
         projectList.splice(index - 1, 0, movedItem);
       } else {
-        projectList.push(movedItem);
+        projectList.splice(index + 1, 0, movedItem);
       }
-      await api.put('/projects/sequence', { 
-        sequences: projectList.map((p, i) => ({ id: p._id, sequence: i })) 
-      });
+      
+      // Create sequences array with proper project IDs
+      const sequences = projectList.map((project, i) => ({
+        id: project._id || project.id, // Handle both _id and id fields
+        sequence: i
+      }));
+      
+      console.log('Sending sequences:', sequences);
+      
+      await api.put('/projects/sequence', { sequences });
       loadAll();
       alert('Project sequence updated successfully!');
     } catch (e) {
+      console.error('Error updating sequence:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -196,12 +210,19 @@ export default function AdminDashboard() {
   async function handleSaveSequence() {
     setLoading(true);
     try {
-      await api.put('/projects/sequence', { 
-        sequences: projects.map((p, i) => ({ id: p._id, sequence: i })) 
-      });
+      // Create sequences array with proper project IDs
+      const sequences = projects.map((project, i) => ({
+        id: project._id || project.id, // Handle both _id and id fields
+        sequence: i
+      }));
+      
+      console.log('Saving sequences:', sequences);
+      
+      await api.put('/projects/sequence', { sequences });
       loadAll();
       alert('Project sequence saved successfully!');
     } catch (e) {
+      console.error('Error saving sequence:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -213,12 +234,20 @@ export default function AdminDashboard() {
     try {
       const projectList = [...projects];
       projectList.sort((a, b) => a.title.localeCompare(b.title));
-      await api.put('/projects/sequence', { 
-        sequences: projectList.map((p, i) => ({ id: p._id, sequence: i })) 
-      });
+      
+      // Create sequences array with proper project IDs
+      const sequences = projectList.map((project, i) => ({
+        id: project._id || project.id, // Handle both _id and id fields
+        sequence: i
+      }));
+      
+      console.log('Auto-sequencing:', sequences);
+      
+      await api.put('/projects/sequence', { sequences });
       loadAll();
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
+      console.error('Error auto-sequencing:', e);
       setError(e.message);
     } finally {
       setLoading(false);
