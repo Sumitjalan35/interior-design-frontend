@@ -1,7 +1,6 @@
 import React from 'react';
 
 const menuLinks = [
-  { label: 'Brand Story', to: '/brand-story' },
   { label: 'About', to: '/about' },
   { label: 'Services', to: '/services' },
   { label: 'Portfolio', to: '/portfolio' },
