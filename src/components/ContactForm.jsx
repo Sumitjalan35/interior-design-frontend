@@ -164,12 +164,13 @@ export default function ContactForm({ large = false }) {
               <i className="fab fa-linkedin-in" />
             </a>
           </div>
+          {/* Minimal contact info row */}
           <div className={large ? "flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-cream-300 text-sm opacity-80 text-center mb-2" : "flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-cream-300 text-xs opacity-80 text-center mb-1"}>
             <span className="flex items-center"><i className="fas fa-map-marker-alt text-bronze-400 mr-1"/>Deva road lucknow</span>
             <span className="text-bronze-400">|</span>
             <span className="flex items-center"><i className="fas fa-envelope text-bronze-400 mr-1"/>beyondblueprintdesign@gmail.com</span>
             <span className="text-bronze-400">|</span>
-            <span className="flex items-center"><i className="fas fa-phone text-bronze-400 mr-1"/>9648477743, 90444441424</span>
+            <span className="flex items-center"><i className="fas fa-phone text-bronze-400 mr-1"/>9648477743</span>
           </div>
         </AnimatedCard>
       </div>
