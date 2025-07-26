@@ -37,15 +37,17 @@ export default function PortfolioSection() {
   }, []);
 
   // Transform backend data to match frontend structure
-  const projects = portfolioData.map(item => ({
-    id: item.id,
-    title: item.title,
-    category: item.category?.toLowerCase() || 'residential',
-    image: item.image || item.mainImage,
-    description: item.description,
-    area: item.area,
-    duration: item.duration
-  }));
+  const projects = portfolioData
+    .sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
+    .map(item => ({
+      id: item.id,
+      title: item.title,
+      category: item.category?.toLowerCase() || 'residential',
+      image: item.image || item.mainImage,
+      description: item.description,
+      area: item.area,
+      duration: item.duration
+    }));
 
   const filteredProjects = activeCategory === 'all' 
     ? projects 
