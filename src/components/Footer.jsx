@@ -41,13 +41,9 @@ export default function Footer() {
     { name: 'Careers', href: '/careers' }
   ];
 
-  const socialLinks = [
-    { name: 'Instagram', icon: 'fab fa-instagram', href: '#' },
-    { name: 'Pinterest', icon: 'fab fa-pinterest', href: '#' },
-    { name: 'Houzz', icon: 'fab fa-houzz', href: '#' },
-    { name: 'LinkedIn', icon: 'fab fa-linkedin', href: '#' },
-    { name: 'Facebook', icon: 'fab fa-facebook', href: '#' },
-    { name: 'Twitter', icon: 'fab fa-twitter', href: '#' }
+ const socialLinks = [
+    { name: 'Instagram', icon: 'fab fa-instagram', href: 'https://www.instagram.com/beyond.blueprint/?igsh=cGd4ZTU1enJ3dDhy#' },
+    { name: 'LinkedIn', icon: 'fab fa-linkedin', href: 'https://www.linkedin.com/in/amannjalan/' },
   ];
 
   return (
