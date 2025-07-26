@@ -96,7 +96,13 @@ export const portfolioAPI = {
   update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
   delete: (id) => api.delete(`/admin/portfolio/${id}`),
   getSequence: () => api.get('/projects/sequence'),
-  updateSequence: (sequences) => api.put('/projects/sequence', { sequences }),
+  updateSequence: (sequences) => {
+    console.log('portfolioAPI.updateSequence called with:', sequences);
+    // Ensure sequences is properly formatted
+    const payload = { sequences };
+    console.log('Sending payload:', payload);
+    return api.put('/projects/sequence', payload);
+  },
   reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),
 };
 
