@@ -62,11 +62,27 @@ export default function AdminDashboard() {
         console.log('First project keys:', Object.keys(projectsData[0] || {}));
         console.log('First project _id:', projectsData[0]?._id);
         console.log('First project id:', projectsData[0]?.id);
+        console.log('Total projects loaded:', projectsData.length);
       } else {
         console.log('Projects data is not an array:', projectsData);
       }
       
-      setProjects(Array.isArray(projectsData) ? projectsData : []);
+      // Set projects data, with fallback to portfolio data if projects are empty
+      if (Array.isArray(projectsData) && projectsData.length > 0) {
+        setProjects(projectsData);
+      } else {
+        console.log('No projects data available, using portfolio data as fallback');
+        // Convert portfolio data to project format for sequence management
+        const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
+          _id: item.id,
+          title: item.title,
+          category: item.category,
+          sequence: item.sequence || 0,
+          published: true,
+          featured: item.featured || false
+        })) : [];
+        setProjects(portfolioAsProjects);
+      }
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
@@ -296,8 +312,15 @@ export default function AdminDashboard() {
 
   async function handleAutoSequence() {
     console.log('handleAutoSequence called');
+    console.log('Current projects state:', projects);
+    console.log('Projects length:', projects.length);
+    
     setLoading(true);
     try {
+      if (!Array.isArray(projects) || projects.length === 0) {
+        throw new Error('No projects available for sequencing. Please refresh the page.');
+      }
+      
       const projectList = [...projects];
       projectList.sort((a, b) => a.title.localeCompare(b.title));
       
@@ -311,6 +334,7 @@ export default function AdminDashboard() {
         const projectId = project._id || project.id || project._id?.toString();
         console.log(`Project ${i}:`, project);
         console.log(`Project ${i} ID:`, projectId);
+        console.log(`Project ${i} title:`, project.title);
         
         // Validate that we have a valid ID
         if (!projectId || typeof projectId === 'number') {
@@ -324,14 +348,15 @@ export default function AdminDashboard() {
         };
       }).filter(Boolean); // Remove any null entries
       
-      console.log('Auto-sequencing:', sequences);
+      console.log('Auto-sequencing sequences:', sequences);
+      console.log('Sequences length:', sequences.length);
       
       if (sequences.length === 0) {
-        throw new Error('No valid project IDs found');
+        throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
       }
       
       await api.put('/projects/sequence', { sequences });
-      loadAll();
+      await loadAll(); // Reload data after update
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
