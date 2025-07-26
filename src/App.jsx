@@ -7,7 +7,6 @@ import Footer from './components/Footer';
 import ScrollProgress from './components/ScrollProgress';
 import FloatingActionButton from './components/FloatingActionButton';
 import Home from './pages/Home';
-import BrandStory from './pages/BrandStory';
 import About from './pages/About';
 import Services from './pages/Services';
 import Portfolio from './pages/Portfolio';
@@ -55,7 +54,6 @@ export default function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<Home />} />
-          <Route path='/brand-story' element={<BrandStory />} />
           <Route path='/about' element={<About />} />
           <Route path='/services' element={<Services />} />
           <Route path='/portfolio' element={<Portfolio />} />
