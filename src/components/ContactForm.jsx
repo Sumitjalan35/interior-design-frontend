@@ -164,13 +164,12 @@ export default function ContactForm({ large = false }) {
               <i className="fab fa-linkedin-in" />
             </a>
           </div>
-          {/* Minimal contact info row */}
-          <div className={large ? "flex flex-col md:flex-row flex-wrap justify-center items-center gap-x-8 gap-y-2 text-cream-300 text-sm opacity-80 text-center md:text-left mb-2" : "flex flex-col md:flex-row flex-wrap justify-center items-center gap-x-6 gap-y-1 text-cream-300 text-xs opacity-80 text-center md:text-left mb-1"}>
-            <span className="flex items-center"><i className="fas fa-map-marker-alt text-bronze-400 mr-2"/>Deva road lucknow</span>
-            <span className="hidden md:inline">|</span>
-            <span className="flex items-center"><i className="fas fa-envelope text-bronze-400 mr-2"/>beyondblueprintdesign@gmail.com</span>
-            <span className="hidden md:inline">|</span>
-            <span className="flex items-center"><i className="fas fa-phone text-bronze-400 mr-2"/>9648477743, 90444441424</span>
+          <div className={large ? "flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-cream-300 text-sm opacity-80 text-center mb-2" : "flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-cream-300 text-xs opacity-80 text-center mb-1"}>
+            <span className="flex items-center"><i className="fas fa-map-marker-alt text-bronze-400 mr-1"/>Deva road lucknow</span>
+            <span className="text-bronze-400">|</span>
+            <span className="flex items-center"><i className="fas fa-envelope text-bronze-400 mr-1"/>beyondblueprintdesign@gmail.com</span>
+            <span className="text-bronze-400">|</span>
+            <span className="flex items-center"><i className="fas fa-phone text-bronze-400 mr-1"/>9648477743, 90444441424</span>
           </div>
         </AnimatedCard>
       </div>
