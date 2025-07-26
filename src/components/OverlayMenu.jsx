@@ -11,13 +11,9 @@ const menuLinks = [
 ];
 
 const socialLinks = [
-  { icon: 'fab fa-facebook-f', url: '#' },
-  { icon: 'fab fa-pinterest-p', url: '#' },
-  { icon: 'fab fa-instagram', url: '#' },
-  { icon: 'fab fa-youtube', url: '#' },
-  { icon: 'fab fa-linkedin-in', url: '#' },
+  { icon: 'fab fa-instagram', url: 'https://www.instagram.com/beyond.blueprint/?igsh=cGd4ZTU1enJ3dDhy#' },
+  { icon: 'fab fa-linkedin-in', url: 'https://www.linkedin.com/in/amannjalan/' },
 ];
-
 export default function OverlayMenu({ open, onClose }) {
   if (!open) return null;
   return (
