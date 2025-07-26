@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHome,
-  faBookOpen,
   faUser,
   faCogs,
   faImages,
@@ -23,7 +22,6 @@ import {
 
 const menuItems = [
   { label: 'Home', to: '/', icon: faHome },
-  { label: 'Brand Story', to: '/brand-story', icon: faBookOpen },
   { label: 'About', to: '/about', icon: faUser },
   { label: 'Services', to: '/services', icon: faCogs },
   { label: 'Portfolio', to: '/portfolio', icon: faImages },
@@ -125,9 +123,6 @@ export default function SlidingMenu({ isOpen, onClose }) {
         <nav className="flex flex-col gap-7 w-full">
           <Link to="/" onClick={onClose} className="menu-luxury flex items-center gap-4 text-cream-100 text-2xl hover:text-bronze-400 transition-colors duration-200">
             <FontAwesomeIcon icon={faHome} /> Home
-          </Link>
-          <Link to="/brandstory" onClick={onClose} className="menu-luxury flex items-center gap-4 text-cream-100 text-2xl hover:text-bronze-400 transition-colors duration-200">
-            <FontAwesomeIcon icon={faBookOpen} /> Brand Story
           </Link>
           <Link to="/about" onClick={onClose} className="menu-luxury flex items-center gap-4 text-cream-100 text-2xl hover:text-bronze-400 transition-colors duration-200">
             <FontAwesomeIcon icon={faUser} /> About
