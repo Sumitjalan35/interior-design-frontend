@@ -143,11 +143,6 @@ export default function SlidingMenu({ isOpen, onClose }) {
           <FontAwesomeIcon icon={faPlus} />
         </button>
       </div>
-      {/* Extra: floating shapes for fun */}
-      <div className="pointer-events-none fixed inset-0 z-40">
-        <div className="absolute left-1/4 top-1/3 w-32 h-32 bg-bronze-400/10 rounded-full blur-2xl animate-float-slow" />
-        <div className="absolute right-1/4 bottom-1/4 w-24 h-24 bg-bronze-400/20 rounded-full blur-2xl animate-float" />
-      </div>
       <style>{`
         @keyframes gradient-move {
           0% { background-position: 0% 50%; }
