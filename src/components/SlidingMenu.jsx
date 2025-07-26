@@ -115,15 +115,6 @@ export default function SlidingMenu({ isOpen, onClose }) {
         </button>
         {/* Logo */}
         <img src="/assets/slideshow/beyond_blueprint_Logo__7_-removebg-preview.png" alt="Logo" className="w-24 h-24 mx-auto mb-2 object-contain" />
-        {/* Brand Name at the top of the menu */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-bronze-400 to-gold-400 flex items-center justify-center shadow-lg glass-effect">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-charcoal-950">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
-            </svg>
-          </div>
-          <span className="text-2xl font-extrabold tracking-tight gradient-text text-shadow-lg">Beyond Blueprint</span>
-        </div>
         {/* Menu Items */}
         <nav className="flex flex-col gap-7 w-full">
           <Link to="/" onClick={onClose} className="menu-luxury flex items-center gap-4 text-cream-100 text-2xl hover:text-bronze-400 transition-colors duration-200">
