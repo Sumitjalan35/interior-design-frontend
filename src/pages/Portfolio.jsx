@@ -18,13 +18,15 @@ export default function Portfolio() {
     const fetchPortfolio = async () => {
       try {
         const response = await portfolioAPI.getAll();
-        const projects = response.data.map(project => ({
-          id: project.id,
-          name: project.title,
-          image: project.image,
-          category: project.category,
-          hasDetail: true
-        }));
+        const projects = response.data
+          .sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
+          .map(project => ({
+            id: project.id,
+            name: project.title,
+            image: project.image,
+            category: project.category,
+            hasDetail: true
+          }));
         setAllProjects(projects);
         setLoading(false);
       } catch (err) {
