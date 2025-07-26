@@ -95,6 +95,9 @@ export const portfolioAPI = {
   create: (portfolioData) => api.post('/admin/portfolio', portfolioData),
   update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
   delete: (id) => api.delete(`/admin/portfolio/${id}`),
+  getSequence: () => api.get('/projects/sequence'),
+  updateSequence: (sequences) => api.put('/projects/sequence', { sequences }),
+  reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),
 };
 
 // Services API
