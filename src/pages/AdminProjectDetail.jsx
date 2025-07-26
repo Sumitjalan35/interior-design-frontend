@@ -398,6 +398,22 @@ export default function AdminProjectDetail() {
                       )}
                     </div>
                     <div>
+                      <span className="text-cream-300/70 text-sm">Sequence</span>
+                      {editing ? (
+                        <input 
+                          name="sequence" 
+                          type="number" 
+                          min="0"
+                          value={form.sequence || 0} 
+                          onChange={handleChange} 
+                          className="input-dark w-full" 
+                          placeholder="Display order (0 = first)"
+                        />
+                      ) : (
+                        <p className="text-cream-100 font-medium">{form.sequence || 0}</p>
+                      )}
+                    </div>
+                    <div>
                       <span className="text-cream-300/70 text-sm">Budget</span>
                       {editing ? (
                         <input name="budget" value={form.budget || ''} onChange={handleChange} className="input-dark w-full" />
