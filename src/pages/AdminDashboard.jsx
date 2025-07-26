@@ -235,7 +235,7 @@ export default function AdminDashboard() {
         console.log(`Project ${i} ID:`, projectId);
         
         // Validate that we have a valid ID
-        if (!projectId || typeof projectId === 'number') {
+        if (!projectId) {
           console.error(`Invalid project ID for project ${i}:`, projectId);
           return null;
         }
