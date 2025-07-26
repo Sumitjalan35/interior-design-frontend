@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCard, { ServiceCard } from '../components/AnimatedCard';
-import { portfolioAPI, servicesAPI, slideshowAPI, api } from '../services/api';
+import { portfolioAPI, servicesAPI, slideshowAPI } from '../services/api';
+import api from '../services/api';
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
 const TABS = ['Portfolio', 'Services', 'Slideshow', 'Sequence Management'];
