@@ -33,13 +33,9 @@ const menuItems = [
 ];
 
 const socialLinks = [
-  { icon: faFacebookF, url: '#', color: 'hover:bg-blue-600' },
-  { icon: faInstagram, url: '#', color: 'hover:bg-pink-600' },
-  { icon: faPinterestP, url: '#', color: 'hover:bg-red-600' },
-  { icon: faYoutube, url: '#', color: 'hover:bg-red-500' },
-  { icon: faLinkedinIn, url: '#', color: 'hover:bg-blue-700' },
+  { icon: faInstagram, url: 'https://www.instagram.com/beyond.blueprint/?igsh=cGd4ZTU1enJ3dDhy#', color: 'hover:bg-pink-600' },
+  { icon: faLinkedinIn, url: 'https://www.linkedin.com/in/amannjalan/', color: 'hover:bg-blue-700' },
 ];
-
 export function HamburgerButton({ isOpen, onClick }) {
   return (
     <button
