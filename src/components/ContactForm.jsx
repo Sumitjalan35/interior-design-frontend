@@ -157,11 +157,12 @@ export default function ContactForm({ large = false }) {
           </form>
           {/* Social Icons */}
           <div className={large ? "flex justify-center gap-4 mb-8" : "flex justify-center gap-3 mb-4"}>
-            {['fab fa-facebook-f','fab fa-pinterest-p','fab fa-instagram','fab fa-youtube','fab fa-linkedin-in'].map((icon, i) => (
-              <a key={i} href="#" className={large ? "w-9 h-9 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200" : "w-8 h-8 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200 text-base"}>
-                <i className={icon} />
-              </a>
-            ))}
+            <a href="https://www.instagram.com/beyond.blueprint/?igsh=cGd4ZTU1enJ3dDhy#" target="_blank" rel="noopener noreferrer" className={large ? "w-9 h-9 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200" : "w-8 h-8 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200 text-base"}>
+              <i className="fab fa-instagram" />
+            </a>
+            <a href="https://www.linkedin.com/in/amannjalan/" target="_blank" rel="noopener noreferrer" className={large ? "w-9 h-9 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200" : "w-8 h-8 rounded-full bg-charcoal-900/80 border border-bronze-400 flex items-center justify-center text-bronze-400 hover:bg-bronze-400 hover:text-charcoal-900 transition-all duration-200 text-base"}>
+              <i className="fab fa-linkedin-in" />
+            </a>
           </div>
           {/* Minimal contact info row */}
           <div className={large ? "flex flex-col md:flex-row flex-wrap justify-center items-center gap-x-8 gap-y-2 text-cream-300 text-sm opacity-80 text-center md:text-left mb-2" : "flex flex-col md:flex-row flex-wrap justify-center items-center gap-x-6 gap-y-1 text-cream-300 text-xs opacity-80 text-center md:text-left mb-1"}>
