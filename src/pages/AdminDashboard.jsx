@@ -45,10 +45,27 @@ export default function AdminDashboard() {
       setSlideshow(Array.isArray(ss) ? ss : []);
       
       // Debug: Log the projects data structure
-      console.log('Projects data from /projects/sequence:', projectsResponse);
-      console.log('First project structure:', projectsResponse[0]);
+      console.log('Raw projects response:', projectsResponse);
+      console.log('Projects response type:', typeof projectsResponse);
+      console.log('Is array:', Array.isArray(projectsResponse));
       
-      setProjects(Array.isArray(projectsResponse) ? projectsResponse : []);
+      // Extract the actual projects data from the response
+      let projectsData = projectsResponse;
+      if (projectsResponse && projectsResponse.data) {
+        projectsData = projectsResponse.data;
+        console.log('Extracted projects data from response.data:', projectsData);
+      }
+      
+      if (Array.isArray(projectsData)) {
+        console.log('First project structure:', projectsData[0]);
+        console.log('First project keys:', Object.keys(projectsData[0] || {}));
+        console.log('First project _id:', projectsData[0]?._id);
+        console.log('First project id:', projectsData[0]?.id);
+      } else {
+        console.log('Projects data is not an array:', projectsData);
+      }
+      
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
@@ -178,6 +195,7 @@ export default function AdminDashboard() {
   }
 
   async function handleMoveProject(index, direction) {
+    console.log('handleMoveProject called with:', { index, direction });
     setLoading(true);
     try {
       const projectList = [...projects];
@@ -188,15 +206,39 @@ export default function AdminDashboard() {
         projectList.splice(index + 1, 0, movedItem);
       }
       
+      // Debug: Log the project structure
+      console.log('Projects array:', projectList);
+      console.log('First project:', projectList[0]);
+      console.log('Available keys:', Object.keys(projectList[0] || {}));
+      
       // Create sequences array with proper project IDs
-      const sequences = projectList.map((project, i) => ({
-        id: project._id || project.id, // Handle both _id and id fields
-        sequence: i
-      }));
+      const sequences = projectList.map((project, i) => {
+        const projectId = project._id || project.id || project._id?.toString();
+        console.log(`Project ${i}:`, project);
+        console.log(`Project ${i} ID:`, projectId);
+        
+        // Validate that we have a valid ID
+        if (!projectId || typeof projectId === 'number') {
+          console.error(`Invalid project ID for project ${i}:`, projectId);
+          return null;
+        }
+        
+        return {
+          id: projectId,
+          sequence: i
+        };
+      }).filter(Boolean); // Remove any null entries
       
       console.log('Sending sequences:', sequences);
       
-      await api.put('/projects/sequence', { sequences });
+      if (sequences.length === 0) {
+        throw new Error('No valid project IDs found');
+      }
+      
+      const requestPayload = { sequences };
+      console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
+      
+      await api.put('/projects/sequence', requestPayload);
       loadAll();
       alert('Project sequence updated successfully!');
     } catch (e) {
@@ -208,15 +250,37 @@ export default function AdminDashboard() {
   }
 
   async function handleSaveSequence() {
+    console.log('handleSaveSequence called');
     setLoading(true);
     try {
+      // Debug: Log the projects structure
+      console.log('Projects array:', projects);
+      console.log('First project:', projects[0]);
+      console.log('Available keys:', Object.keys(projects[0] || {}));
+      
       // Create sequences array with proper project IDs
-      const sequences = projects.map((project, i) => ({
-        id: project._id || project.id, // Handle both _id and id fields
-        sequence: i
-      }));
+      const sequences = projects.map((project, i) => {
+        const projectId = project._id || project.id || project._id?.toString();
+        console.log(`Project ${i}:`, project);
+        console.log(`Project ${i} ID:`, projectId);
+        
+        // Validate that we have a valid ID
+        if (!projectId || typeof projectId === 'number') {
+          console.error(`Invalid project ID for project ${i}:`, projectId);
+          return null;
+        }
+        
+        return {
+          id: projectId,
+          sequence: i
+        };
+      }).filter(Boolean); // Remove any null entries
       
       console.log('Saving sequences:', sequences);
+      
+      if (sequences.length === 0) {
+        throw new Error('No valid project IDs found');
+      }
       
       await api.put('/projects/sequence', { sequences });
       loadAll();
@@ -230,18 +294,40 @@ export default function AdminDashboard() {
   }
 
   async function handleAutoSequence() {
+    console.log('handleAutoSequence called');
     setLoading(true);
     try {
       const projectList = [...projects];
       projectList.sort((a, b) => a.title.localeCompare(b.title));
       
+      // Debug: Log the project structure
+      console.log('Sorted projects array:', projectList);
+      console.log('First project:', projectList[0]);
+      console.log('Available keys:', Object.keys(projectList[0] || {}));
+      
       // Create sequences array with proper project IDs
-      const sequences = projectList.map((project, i) => ({
-        id: project._id || project.id, // Handle both _id and id fields
-        sequence: i
-      }));
+      const sequences = projectList.map((project, i) => {
+        const projectId = project._id || project.id || project._id?.toString();
+        console.log(`Project ${i}:`, project);
+        console.log(`Project ${i} ID:`, projectId);
+        
+        // Validate that we have a valid ID
+        if (!projectId || typeof projectId === 'number') {
+          console.error(`Invalid project ID for project ${i}:`, projectId);
+          return null;
+        }
+        
+        return {
+          id: projectId,
+          sequence: i
+        };
+      }).filter(Boolean); // Remove any null entries
       
       console.log('Auto-sequencing:', sequences);
+      
+      if (sequences.length === 0) {
+        throw new Error('No valid project IDs found');
+      }
       
       await api.put('/projects/sequence', { sequences });
       loadAll();
