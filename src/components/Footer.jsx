@@ -65,7 +65,7 @@ export default function Footer() {
             }`}>
               <div className="mb-6">
                 <h3 className="text-2xl font-bold text-cream-100 mb-4">
-                  Luxury <span className="bg-gradient-to-r from-bronze-400 to-gold-400 bg-clip-text text-transparent">Interiors</span>
+                  Beyond <span className="bg-gradient-to-r from-bronze-400 to-gold-400 bg-clip-text text-transparent">Blueprint</span>
                 </h3>
                 <p className="text-cream-300 leading-relaxed mb-6">
                   Creating extraordinary spaces that inspire, delight, and reflect your unique vision. 
