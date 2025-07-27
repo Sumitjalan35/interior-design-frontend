@@ -20,15 +20,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Debug logging
-    console.log('API Request:', {
-      method: config.method,
-      url: config.url,
-      hasToken: !!token,
-      tokenLength: token ? token.length : 0,
-      headers: config.headers,
-      data: config.data
-    });
     return config;
   },
   (error) => {
@@ -39,23 +30,9 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    // Debug logging
-    console.log('API Response:', {
-      status: response.status,
-      url: response.config.url,
-      data: response.data
-    });
     return response;
   },
   (error) => {
-    // Debug logging
-    console.error('API Error:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      message: error.message,
-      data: error.response?.data
-    });
-    
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');
@@ -115,24 +92,12 @@ export const adminAPI = {
 // Portfolio API
 export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
-  create: (portfolioData) => {
-    console.log('portfolioAPI.create called with:', portfolioData);
-    return api.post('/projects/json', portfolioData);
-  },
-  update: (id, portfolioData) => {
-    console.log('portfolioAPI.update called with:', { id, portfolioData });
-    return api.put(`/projects/${id}`, portfolioData);
-  },
-  delete: (id) => {
-    console.log('portfolioAPI.delete called with:', id);
-    return api.delete(`/projects/${id}`);
-  },
+  create: (portfolioData) => api.post('/projects/json', portfolioData),
+  update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
+  delete: (id) => api.delete(`/projects/${id}`),
   getSequence: () => api.get('/projects/sequence'),
   updateSequence: (sequences) => {
-    console.log('portfolioAPI.updateSequence called with:', sequences);
-    // Ensure sequences is properly formatted
     const payload = { sequences };
-    console.log('Sending payload:', payload);
     return api.put('/projects/sequence', payload);
   },
   reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),

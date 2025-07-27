@@ -37,39 +37,15 @@ export default function AdminDashboard() {
     try {
       const [projectsResponse, s, ss] = await Promise.all([
         api.get('/projects').then(r => r.data),
-        servicesAPI.getAll().then(r => r.data),
+        api.get('/admin/services').then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
       ]);
       
-      // Debug: Log the projects data structure
-      console.log('Raw projects response:', projectsResponse);
-      console.log('Projects response type:', typeof projectsResponse);
-      console.log('Is array:', Array.isArray(projectsResponse));
-      
-      // Extract the actual projects data from the response
-      let projectsData = projectsResponse;
-      if (projectsResponse && projectsResponse.data) {
-        projectsData = projectsResponse.data;
-        console.log('Extracted projects data from response.data:', projectsData);
-      }
-      
-      if (Array.isArray(projectsData)) {
-        console.log('First project structure:', projectsData[0]);
-        console.log('First project keys:', Object.keys(projectsData[0] || {}));
-        console.log('First project _id:', projectsData[0]?._id);
-        console.log('First project id:', projectsData[0]?.id);
-        console.log('Total projects loaded:', projectsData.length);
-      } else {
-        console.log('Projects data is not an array:', projectsData);
-      }
-      
       // Set projects data for admin dashboard
-      if (Array.isArray(projectsData) && projectsData.length > 0) {
-        setProjects(projectsData);
-        // Also set portfolio data for backward compatibility
-        setPortfolio(projectsData);
+      if (projectsResponse && projectsResponse.data && Array.isArray(projectsResponse.data)) {
+        setProjects(projectsResponse.data);
+        setPortfolio(projectsResponse.data);
       } else {
-        console.log('No projects data available');
         setProjects([]);
         setPortfolio([]);
       }
@@ -103,16 +79,10 @@ export default function AdminDashboard() {
   }
 
   function openModal(type, data = {}) {
-    console.log('=== openModal called ===');
-    console.log('Type:', type);
-    console.log('Data:', data);
-    
     setModal({ type, ...data });
     setForm(data);
     setImgFile(null);
     setImgPreview(data.image ? data.image : null);
-    
-    console.log('Modal state set to:', { type, ...data });
   }
 
   function closeModal() {
@@ -133,23 +103,14 @@ export default function AdminDashboard() {
   }
 
   async function handleSave(type) {
-    console.log('=== handleSave called ===');
-    console.log('Type:', type);
-    console.log('Form data:', form);
-    console.log('ImgFile:', imgFile);
-    console.log('Modal:', modal);
-    
     setLoading(true);
     try {
       let body = { ...form };
       
       if (type === 'portfolio') {
-        console.log('Processing portfolio save...');
         // Handle portfolio/project creation/update
         if (imgFile) {
-          console.log('Uploading image...');
           const imageUrl = await uploadImage(imgFile);
-          console.log('Image uploaded, URL:', imageUrl);
           body.images = [{ url: imageUrl, alt: form.title, isPrimary: true }];
         }
         
@@ -173,39 +134,22 @@ export default function AdminDashboard() {
           images: body.images || []
         };
         
-        console.log('Project data prepared:', projectData);
-        
         if (form.id || form._id) {
           const projectId = form.id || form._id;
-          console.log('Updating existing project with ID:', projectId);
-          const result = await portfolioAPI.update(projectId, projectData);
-          console.log('Update result:', result);
+          await portfolioAPI.update(projectId, projectData);
         } else {
-          console.log('Creating new project...');
-          const result = await portfolioAPI.create(projectData);
-          console.log('Create result:', result);
+          await portfolioAPI.create(projectData);
         }
       } else if (type === 'services') {
-        console.log('Processing services save...');
-        console.log('Service data:', body);
         if (form.id) {
-          console.log('Updating service with ID:', form.id);
-          const result = await servicesAPI.update(form.id, body);
-          console.log('Service update result:', result);
+          await servicesAPI.update(form.id, body);
         } else {
-          console.log('Creating new service...');
-          const result = await servicesAPI.create(body);
-          console.log('Service create result:', result);
+          await servicesAPI.create(body);
         }
       }
-      console.log('Save completed successfully');
       closeModal();
       loadAll();
     } catch (e) {
-      console.error('=== Error in handleSave ===');
-      console.error('Error details:', e);
-      console.error('Error message:', e.message);
-      console.error('Error response:', e.response);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -213,33 +157,18 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(type, id) {
-    console.log('=== handleDelete called ===');
-    console.log('Type:', type);
-    console.log('ID:', id);
-    console.log('ID type:', typeof id);
-    console.log('ID object:', id);
-    
     if (!window.confirm('Are you sure?')) return;
     setLoading(true);
     try {
       if (type === 'portfolio') {
         // Use the project ID (could be _id or id)
         const projectId = id._id || id.id || id;
-        console.log('Deleting portfolio project with ID:', projectId);
-        const result = await portfolioAPI.delete(projectId);
-        console.log('Portfolio delete result:', result);
+        await portfolioAPI.delete(projectId);
       } else if (type === 'services') {
-        console.log('Deleting service with ID:', id);
-        const result = await servicesAPI.delete(id);
-        console.log('Service delete result:', result);
+        await servicesAPI.delete(id);
       }
-      console.log('Delete completed successfully');
       loadAll();
     } catch (e) {
-      console.error('=== Error in handleDelete ===');
-      console.error('Error details:', e);
-      console.error('Error message:', e.message);
-      console.error('Error response:', e.response);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -449,49 +378,7 @@ export default function AdminDashboard() {
     }
   }
 
-  // Test function to check authentication
-  async function testAuth() {
-    console.log('Testing authentication...');
-    const token = localStorage.getItem('admin_token');
-    console.log('Token exists:', !!token);
-    console.log('Token length:', token ? token.length : 0);
-    
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Auth test response status:', response.status);
-      const data = await response.json();
-      console.log('Auth test response data:', data);
-      
-      if (response.ok) {
-        alert('Authentication is working! User: ' + data.data.name);
-      } else {
-        alert('Authentication failed: ' + data.message);
-      }
-    } catch (error) {
-      console.error('Auth test error:', error);
-      alert('Authentication test failed: ' + error.message);
-    }
-  }
 
-  // Fix image URLs function
-  async function handleFixImages() {
-    setLoading(true);
-    try {
-      const response = await portfolioAPI.fixImages();
-      alert(`Fixed ${response.data.updatedCount} projects with invalid image URLs`);
-      loadAll(); // Reload data
-    } catch (e) {
-      console.error('Error fixing images:', e);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   // Render modals
   function renderModal() {
@@ -704,8 +591,6 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
                                   <div className="flex gap-2">
                     <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
-                    <button onClick={handleFixImages} className="btn-secondary">Fix Images</button>
-                    <button onClick={testAuth} className="btn-secondary">Test Auth</button>
                     <button onClick={loadAll} className="btn-primary">Refresh</button>
                   </div>
               </div>
