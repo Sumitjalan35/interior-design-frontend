@@ -451,6 +451,21 @@ export default function AdminDashboard() {
     }
   }
 
+  // Fix image URLs function
+  async function handleFixImages() {
+    setLoading(true);
+    try {
+      const response = await portfolioAPI.fixImages();
+      alert(`Fixed ${response.data.updatedCount} projects with invalid image URLs`);
+      loadAll(); // Reload data
+    } catch (e) {
+      console.error('Error fixing images:', e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Render modals
   function renderModal() {
     if (!modal) return null;
@@ -660,11 +675,12 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
-                <div className="flex gap-2">
-                  <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
-            <button onClick={testAuth} className="btn-secondary">Test Auth</button>
-                  <button onClick={loadAll} className="btn-primary">Refresh</button>
-                </div>
+                                  <div className="flex gap-2">
+                    <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
+                    <button onClick={handleFixImages} className="btn-secondary">Fix Images</button>
+                    <button onClick={testAuth} className="btn-secondary">Test Auth</button>
+                    <button onClick={loadAll} className="btn-primary">Refresh</button>
+                  </div>
               </div>
               
               <div className="bg-charcoal-800/50 rounded-lg p-6">

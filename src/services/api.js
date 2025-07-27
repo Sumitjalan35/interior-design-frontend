@@ -137,6 +137,7 @@ export const portfolioAPI = {
   },
   reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),
   syncPortfolio: () => api.post('/projects/sync-portfolio'),
+  fixImages: () => api.post('/projects/fix-images'),
 };
 
 // Services API
