@@ -92,9 +92,9 @@ export const adminAPI = {
 // Portfolio API
 export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
-  create: (portfolioData) => api.post('/admin/portfolio', portfolioData),
-  update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
-  delete: (id) => api.delete(`/admin/portfolio/${id}`),
+  create: (portfolioData) => api.post('/projects', portfolioData),
+  update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
+  delete: (id) => api.delete(`/projects/${id}`),
   getSequence: () => api.get('/projects/sequence'),
   updateSequence: (sequences) => {
     console.log('portfolioAPI.updateSequence called with:', sequences);
