@@ -91,18 +91,19 @@ export const adminAPI = {
 
 // Portfolio API
 export const portfolioAPI = {
-  getAll: () => api.get('/projects'),
-  create: (portfolioData) => api.post('/projects/json', portfolioData),
-  update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
-  delete: (id) => api.delete(`/projects/${id}`),
+  getAll: () => api.get('/portfolio'),
+  create: (portfolioData) => api.post('/admin/portfolio', portfolioData),
+  update: (id, portfolioData) => api.put(`/admin/portfolio/${id}`, portfolioData),
+  delete: (id) => api.delete(`/admin/portfolio/${id}`),
   getSequence: () => api.get('/projects/sequence'),
   updateSequence: (sequences) => {
+    console.log('portfolioAPI.updateSequence called with:', sequences);
+    // Ensure sequences is properly formatted
     const payload = { sequences };
+    console.log('Sending payload:', payload);
     return api.put('/projects/sequence', payload);
   },
   reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),
-  syncPortfolio: () => api.post('/projects/sync-portfolio'),
-  fixImages: () => api.post('/projects/fix-images'),
 };
 
 // Services API

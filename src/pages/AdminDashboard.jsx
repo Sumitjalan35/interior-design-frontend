@@ -35,23 +35,56 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [projectsResponse, s, ss] = await Promise.all([
+      const [p, s, ss, projectsResponse] = await Promise.all([
         portfolioAPI.getAll().then(r => r.data),
-        api.get('/admin/services').then(r => r.data),
+        servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
+        api.get('/projects/sequence').then(r => r.data),
       ]);
-      
-      if (projectsResponse && projectsResponse.data && Array.isArray(projectsResponse.data)) {
-        setProjects(projectsResponse.data);
-        setPortfolio(projectsResponse.data);
-      } else {
-        setProjects([]);
-        setPortfolio([]);
-      }
-      
+      setPortfolio(Array.isArray(p) ? p : []);
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
+      
+      // Debug: Log the projects data structure
+      console.log('Raw projects response:', projectsResponse);
+      console.log('Projects response type:', typeof projectsResponse);
+      console.log('Is array:', Array.isArray(projectsResponse));
+      
+      // Extract the actual projects data from the response
+      let projectsData = projectsResponse;
+      if (projectsResponse && projectsResponse.data) {
+        projectsData = projectsResponse.data;
+        console.log('Extracted projects data from response.data:', projectsData);
+      }
+      
+      if (Array.isArray(projectsData)) {
+        console.log('First project structure:', projectsData[0]);
+        console.log('First project keys:', Object.keys(projectsData[0] || {}));
+        console.log('First project _id:', projectsData[0]?._id);
+        console.log('First project id:', projectsData[0]?.id);
+        console.log('Total projects loaded:', projectsData.length);
+      } else {
+        console.log('Projects data is not an array:', projectsData);
+      }
+      
+      // Set projects data, with fallback to portfolio data if projects are empty
+      if (Array.isArray(projectsData) && projectsData.length > 0) {
+        setProjects(projectsData);
+      } else {
+        console.log('No projects data available, using portfolio data as fallback');
+        // Convert portfolio data to project format for sequence management
+        const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
+          _id: item.id,
+          title: item.title,
+          category: item.category,
+          sequence: item.sequence || 0,
+          published: true,
+          featured: item.featured || false
+        })) : [];
+        setProjects(portfolioAsProjects);
+      }
     } catch (e) {
+      console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
     } finally {
       setLoading(false);
@@ -103,40 +136,14 @@ export default function AdminDashboard() {
   async function handleSave(type) {
     setLoading(true);
     try {
-      let body = { ...form };
-      
+      let image = form.image;
+      if (imgFile) image = await uploadImage(imgFile);
+      let body = { ...form, image };
       if (type === 'portfolio') {
-        // Handle portfolio/project creation/update
-        if (imgFile) {
-          const imageUrl = await uploadImage(imgFile);
-          body.images = [{ url: imageUrl, alt: form.title, isPrimary: true }];
-        }
-        
-        // Transform form data to project structure
-        const projectData = {
-          title: form.title,
-          description: form.description,
-          category: form.category || 'residential',
-          location: form.location || 'Location not specified',
-          area: form.area ? parseInt(form.area) : 0,
-          budget: form.budget ? parseInt(form.budget) : 0,
-          duration: form.duration || 'Duration not specified',
-          sequence: form.sequence || 0,
-          featured: form.featured || false,
-          published: true,
-          services: form.features || [],
-          client: {
-            name: form.clientName || form.title,
-            testimonial: form.clientTestimonial || ''
-          },
-          images: body.images || []
-        };
-        
-        if (form.id || form._id) {
-          const projectId = form.id || form._id;
-          await portfolioAPI.update(projectId, projectData);
+        if (form.id) {
+          await portfolioAPI.update(form.id, body);
         } else {
-          await portfolioAPI.create(projectData);
+          await portfolioAPI.create(body);
         }
       } else if (type === 'services') {
         if (form.id) {
@@ -159,9 +166,7 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       if (type === 'portfolio') {
-        // Use the project ID (could be _id or id)
-        const projectId = id._id || id.id || id;
-        await portfolioAPI.delete(projectId);
+        await portfolioAPI.delete(id);
       } else if (type === 'services') {
         await servicesAPI.delete(id);
       }
@@ -361,23 +366,6 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleSyncPortfolio() {
-    console.log('handleSyncPortfolio called');
-    setLoading(true);
-    try {
-      await portfolioAPI.syncPortfolio();
-      await loadAll(); // Reload data after sync
-      alert('Portfolio data synced successfully!');
-    } catch (e) {
-      console.error('Error syncing portfolio:', e);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
-
   // Render modals
   function renderModal() {
     if (!modal) return null;
@@ -386,32 +374,9 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-charcoal-800 p-8 rounded-xl shadow-xl w-full max-w-md flex flex-col gap-4 relative">
             <button onClick={closeModal} className="absolute top-2 right-4 text-gold-400 text-2xl">&times;</button>
-            <h2 className="text-xl font-bold text-gold-400 mb-2">{form.id ? 'Edit' : 'Add'} {modal.type === 'portfolio' ? 'Project' : 'Service Card'}</h2>
+            <h2 className="text-xl font-bold text-gold-400 mb-2">{form.id ? 'Edit' : 'Add'} {modal.type === 'portfolio' ? 'Portfolio Card' : 'Service Card'}</h2>
             <input name="title" value={form.title || ''} onChange={handleChange} placeholder="Title" className="input-dark" required />
             <textarea name="description" value={form.description || ''} onChange={handleChange} placeholder="Description" className="input-dark" rows={3} required />
-            
-            {modal.type === 'portfolio' && (
-              <>
-                <select name="category" value={form.category || 'residential'} onChange={handleChange} className="input-dark">
-                  <option value="residential">Residential</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="luxury">Luxury</option>
-                  <option value="modern">Modern</option>
-                </select>
-                <input name="location" value={form.location || ''} onChange={handleChange} placeholder="Location" className="input-dark" />
-                <input name="area" value={form.area || ''} onChange={handleChange} placeholder="Area (sq ft)" className="input-dark" />
-                <input name="budget" value={form.budget || ''} onChange={handleChange} placeholder="Budget (in lakhs)" className="input-dark" />
-                <input name="duration" value={form.duration || ''} onChange={handleChange} placeholder="Duration" className="input-dark" />
-                <input name="features" value={form.features ? form.features.join(', ') : ''} onChange={e => setForm(f => ({ ...f, features: e.target.value.split(',').map(s => s.trim()) }))} placeholder="Features (comma separated)" className="input-dark" />
-                <input name="clientName" value={form.clientName || ''} onChange={handleChange} placeholder="Client Name" className="input-dark" />
-                <textarea name="clientTestimonial" value={form.clientTestimonial || ''} onChange={handleChange} placeholder="Client Testimonial" className="input-dark" rows={2} />
-                <label className="flex items-center gap-2 text-gold-400">
-                  <input type="checkbox" name="featured" checked={form.featured || false} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} />
-                  Featured Project
-                </label>
-              </>
-            )}
-            
             <input type="file" accept="image/*" onChange={handleImgChange} />
             {imgPreview && <ImagePreview src={imgPreview} alt="Preview" />}
             <button onClick={() => handleSave(modal.type)} className="btn-primary w-full">{form.id ? 'Save Changes' : 'Add'}</button>
@@ -487,14 +452,14 @@ export default function AdminDashboard() {
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
                 {portfolio.map((card, idx) => (
                   <div
-                    key={card.id || card._id}
+                    key={card.id}
                     className="group glass-card hover-lift rounded-xl overflow-hidden shadow-lg border border-gold-400/20 hover:border-gold-400/60 transition-all duration-300 flex flex-col items-center cursor-pointer relative"
                     style={{ perspective: 1000 }}
-                    onClick={() => navigate(`/admin/project/${card.id || card._id}`)}
+                    onClick={() => navigate(`/admin/project/${card.id}`)}
                   >
                     <div className="overflow-hidden w-full aspect-square flex items-center justify-center bg-[#222]">
                       <img
-                        src={card.image || card.mainImage || (card.images && card.images[0]?.url) || ''}
+                        src={card.image}
                         alt={card.title}
                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                       />
@@ -507,7 +472,7 @@ export default function AdminDashboard() {
                     {/* Admin Controls */}
                     <div className="absolute top-2 right-2 flex flex-col gap-2 z-10" onClick={e => e.stopPropagation()}>
                       <button onClick={() => openModal('portfolio', card)} className="btn-secondary text-xs">Edit</button>
-                      <button onClick={() => handleDelete('portfolio', card)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                      <button onClick={() => handleDelete('portfolio', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -587,10 +552,7 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
-                                  <div className="flex gap-2">
-                    <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
-                    <button onClick={loadAll} className="btn-primary">Refresh</button>
-                  </div>
+                <button onClick={loadAll} className="btn-primary">Refresh</button>
               </div>
               
               <div className="bg-charcoal-800/50 rounded-lg p-6">
