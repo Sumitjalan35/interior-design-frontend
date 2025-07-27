@@ -42,6 +42,17 @@ export default function AdminDashboard() {
         api.get('/projects/sequence').then(r => r.data),
         api.get('/projects').then(r => r.data),
       ]);
+      
+      // Debug: Log services data to identify any with null IDs
+      console.log('Services data loaded:', s);
+      if (Array.isArray(s)) {
+        s.forEach((service, index) => {
+          if (!service.id || service.id === null || service.id === undefined) {
+            console.error(`Service at index ${index} has invalid ID:`, service);
+          }
+        });
+      }
+      
       setPortfolio(Array.isArray(p) ? p : []);
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
@@ -169,13 +180,25 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(type, id) {
+    console.log('handleDelete called with:', { type, id, idType: typeof id, isNull: id === null, isUndefined: id === undefined });
+    
     if (!window.confirm('Are you sure?')) return;
     
     // Validate that we have a valid ID
-    if (!id || id === null || id === undefined) {
-      setError(`Cannot delete ${type} item: Invalid ID`);
+    if (!id || id === null || id === undefined || id === 'null' || id === 'undefined') {
+      console.error(`Invalid ID for ${type} delete:`, { id, idType: typeof id });
+      setError(`Cannot delete ${type} item: Invalid ID (${id})`);
       return;
     }
+    
+    // Additional validation for string IDs
+    if (typeof id === 'string' && (id.trim() === '' || id.toLowerCase() === 'null' || id.toLowerCase() === 'undefined')) {
+      console.error(`Invalid string ID for ${type} delete:`, { id });
+      setError(`Cannot delete ${type} item: Invalid ID (${id})`);
+      return;
+    }
+    
+    console.log(`Proceeding with delete for ${type} with ID:`, id);
     
     setLoading(true);
     try {
@@ -186,6 +209,7 @@ export default function AdminDashboard() {
       }
       loadAll();
     } catch (e) {
+      console.error(`Error deleting ${type} with ID ${id}:`, e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -469,7 +493,9 @@ export default function AdminDashboard() {
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
                 {services.map((card, idx) => {
                   // Validate that the service has a valid ID
-                  if (!card.id) {
+                  const hasValidId = card.id && card.id !== null && card.id !== undefined && card.id !== 'null' && card.id !== 'undefined';
+                  
+                  if (!hasValidId) {
                     console.warn(`Service at index ${idx} is missing an ID:`, card);
                     return (
                       <div key={`invalid-${idx}`} className="relative border-2 border-red-500 rounded-lg p-4">
@@ -483,6 +509,8 @@ export default function AdminDashboard() {
                     );
                   }
                   
+                  console.log(`Rendering service with valid ID: ${card.id}`, card);
+                  
                   return (
                     <div key={card.id} className="relative">
                       <ServiceCard
@@ -494,7 +522,15 @@ export default function AdminDashboard() {
                       {/* Admin Controls */}
                       <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                         <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
-                        <button onClick={() => handleDelete('services', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                        <button 
+                          onClick={() => {
+                            console.log(`Delete button clicked for service with ID: ${card.id}`);
+                            handleDelete('services', card.id);
+                          }} 
+                          className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   );
