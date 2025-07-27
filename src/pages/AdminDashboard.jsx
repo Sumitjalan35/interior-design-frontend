@@ -48,13 +48,20 @@ export default function AdminDashboard() {
       if (Array.isArray(s)) {
         s.forEach((service, index) => {
           if (!service.id || service.id === null || service.id === undefined) {
-            console.error(`Service at index ${index} has invalid ID:`, service);
+            console.error(`Service at index ${index} has invalid ID:`, JSON.stringify(service, null, 2));
           }
         });
       }
       
+      // Filter out services with invalid IDs to prevent errors
+      const validServices = Array.isArray(s) ? s.filter(service => 
+        service.id && service.id !== null && service.id !== undefined && service.id !== 'null' && service.id !== 'undefined'
+      ) : [];
+      
+      console.log(`Filtered services: ${validServices.length} valid out of ${Array.isArray(s) ? s.length : 0} total`);
+      
       setPortfolio(Array.isArray(p) ? p : []);
-      setServices(Array.isArray(s) ? s : []);
+      setServices(validServices);
       setSlideshow(Array.isArray(ss) ? ss : []);
       let realProjectsArr = realProjectsResponse && realProjectsResponse.data ? realProjectsResponse.data : realProjectsResponse;
       if (!Array.isArray(realProjectsArr)) realProjectsArr = [];
@@ -496,7 +503,7 @@ export default function AdminDashboard() {
                   const hasValidId = card.id && card.id !== null && card.id !== undefined && card.id !== 'null' && card.id !== 'undefined';
                   
                   if (!hasValidId) {
-                    console.warn(`Service at index ${idx} is missing an ID:`, card);
+                    console.warn(`Service at index ${idx} is missing an ID:`, JSON.stringify(card, null, 2));
                     return (
                       <div key={`invalid-${idx}`} className="relative border-2 border-red-500 rounded-lg p-4">
                         <div className="text-red-400 text-sm mb-2">⚠️ Invalid Service (Missing ID)</div>
