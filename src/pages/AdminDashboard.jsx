@@ -45,10 +45,7 @@ export default function AdminDashboard() {
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
       
-      // Debug: Log the projects data structure
-      console.log('Raw projects response:', projectsResponse);
-      console.log('Projects response type:', typeof projectsResponse);
-      console.log('Is array:', Array.isArray(projectsResponse));
+
       
       // Extract the actual projects data from the response
       let projectsData = projectsResponse;
@@ -59,7 +56,6 @@ export default function AdminDashboard() {
       
       // If MongoDB data is not available or empty, use portfolio data
       if (!Array.isArray(projectsData) || projectsData.length === 0) {
-        console.log('No MongoDB projects data available, using portfolio data as fallback');
         // Convert portfolio data to project format for sequence management
         const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
           _id: item.id,
@@ -70,13 +66,7 @@ export default function AdminDashboard() {
           featured: item.featured || false
         })) : [];
         setProjects(portfolioAsProjects);
-        console.log('Set portfolio projects:', portfolioAsProjects.length, 'projects');
       } else {
-        console.log('First project structure:', projectsData[0]);
-        console.log('First project keys:', Object.keys(projectsData[0] || {}));
-        console.log('First project _id:', projectsData[0]?._id);
-        console.log('First project id:', projectsData[0]?.id);
-        console.log('Total projects loaded:', projectsData.length);
         setProjects(projectsData);
       }
     } catch (e) {
@@ -87,7 +77,9 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => { 
+    loadAll(); 
+  }, []);
 
   async function uploadImage(file) {
     const fd = new FormData();
@@ -149,10 +141,12 @@ export default function AdminDashboard() {
         }
       }
       closeModal();
-      loadAll();
+      await loadAll();
       // Also refresh sequence data to keep it in sync
       if (type === 'portfolio') {
-        setTimeout(() => refreshSequenceData(), 1000);
+        setTimeout(() => {
+          refreshSequenceData();
+        }, 2000);
       }
     } catch (e) {
       setError(e.message);
@@ -173,7 +167,9 @@ export default function AdminDashboard() {
       loadAll();
       // Also refresh sequence data to keep it in sync
       if (type === 'portfolio') {
-        setTimeout(() => refreshSequenceData(), 1000);
+        setTimeout(() => {
+          refreshSequenceData();
+        }, 1000);
       }
     } catch (e) {
       setError(e.message);
@@ -216,7 +212,6 @@ export default function AdminDashboard() {
   }
 
   async function handleMoveProject(index, direction) {
-    console.log('handleMoveProject called with:', { index, direction });
     setLoading(true);
     try {
       const projectList = [...projects];
@@ -227,20 +222,12 @@ export default function AdminDashboard() {
         projectList.splice(index + 1, 0, movedItem);
       }
       
-      // Debug: Log the project structure
-      console.log('Projects array:', projectList);
-      console.log('First project:', projectList[0]);
-      console.log('Available keys:', Object.keys(projectList[0] || {}));
-      
       // Create sequences array with proper project IDs
       const sequences = projectList.map((project, i) => {
         const projectId = project._id || project.id || project._id?.toString();
-        console.log(`Project ${i}:`, project);
-        console.log(`Project ${i} ID:`, projectId);
         
         // Validate that we have a valid ID
         if (!projectId) {
-          console.error(`Invalid project ID for project ${i}:`, projectId);
           return null;
         }
         
@@ -250,14 +237,11 @@ export default function AdminDashboard() {
         };
       }).filter(Boolean); // Remove any null entries
       
-      console.log('Sending sequences:', sequences);
-      
       if (sequences.length === 0) {
         throw new Error('No valid project IDs found');
       }
       
       const requestPayload = { sequences };
-      console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
       
       // Check if we're using MongoDB or portfolio data
       const isUsingMongoDB = projects.length > 0 && projects[0]._id && typeof projects[0]._id === 'string' && projects[0]._id.length > 10;
@@ -298,23 +282,14 @@ export default function AdminDashboard() {
   }
 
   async function handleSaveSequence() {
-    console.log('handleSaveSequence called');
     setLoading(true);
     try {
-      // Debug: Log the projects structure
-      console.log('Projects array:', projects);
-      console.log('First project:', projects[0]);
-      console.log('Available keys:', Object.keys(projects[0] || {}));
-      
       // Create sequences array with proper project IDs
       const sequences = projects.map((project, i) => {
         const projectId = project._id || project.id || project._id?.toString();
-        console.log(`Project ${i}:`, project);
-        console.log(`Project ${i} ID:`, projectId);
         
         // Validate that we have a valid ID
         if (!projectId) {
-          console.error(`Invalid project ID for project ${i}:`, projectId);
           return null;
         }
         
@@ -323,8 +298,6 @@ export default function AdminDashboard() {
           sequence: i
         };
       }).filter(Boolean); // Remove any null entries
-      
-      console.log('Saving sequences:', sequences);
       
       if (sequences.length === 0) {
         throw new Error('No valid project IDs found');
@@ -369,29 +342,24 @@ export default function AdminDashboard() {
   }
 
   async function refreshSequenceData() {
-    console.log('Refreshing sequence data...');
     setLoading(true);
     try {
       // First try to get data from MongoDB sequence endpoint
       let projectsData = null;
       try {
         const response = await api.get('/projects/sequence');
-        console.log('Sequence API response:', response);
         
         if (response.data && response.data.data) {
           projectsData = response.data.data;
         } else if (response.data) {
           projectsData = response.data;
         }
-        
-        console.log('MongoDB projects data:', projectsData);
       } catch (mongoError) {
-        console.log('MongoDB sequence endpoint failed, using portfolio fallback:', mongoError.message);
+        // MongoDB sequence endpoint failed, will use portfolio fallback
       }
       
       // If MongoDB data is not available or empty, use portfolio data
       if (!Array.isArray(projectsData) || projectsData.length === 0) {
-        console.log('Using portfolio data as fallback');
         const portfolioResponse = await portfolioAPI.getAll();
         const portfolioData = portfolioResponse.data;
         const portfolioAsProjects = Array.isArray(portfolioData) ? portfolioData.map(item => ({
@@ -403,9 +371,7 @@ export default function AdminDashboard() {
           featured: item.featured || false
         })) : [];
         setProjects(portfolioAsProjects);
-        console.log('Set portfolio projects:', portfolioAsProjects.length, 'projects');
       } else {
-        console.log('Setting MongoDB projects data:', projectsData.length, 'projects');
         setProjects(projectsData);
       }
     } catch (e) {
@@ -417,10 +383,6 @@ export default function AdminDashboard() {
   }
 
   async function handleAutoSequence() {
-    console.log('handleAutoSequence called');
-    console.log('Current projects state:', projects);
-    console.log('Projects length:', projects.length);
-    
     setLoading(true);
     try {
       if (!Array.isArray(projects) || projects.length === 0) {
@@ -430,21 +392,12 @@ export default function AdminDashboard() {
       const projectList = [...projects];
       projectList.sort((a, b) => a.title.localeCompare(b.title));
       
-      // Debug: Log the project structure
-      console.log('Sorted projects array:', projectList);
-      console.log('First project:', projectList[0]);
-      console.log('Available keys:', Object.keys(projectList[0] || {}));
-      
       // Create sequences array with proper project IDs
       const sequences = projectList.map((project, i) => {
         const projectId = project._id || project.id || project._id?.toString();
-        console.log(`Project ${i}:`, project);
-        console.log(`Project ${i} ID:`, projectId);
-        console.log(`Project ${i} title:`, project.title);
         
         // Validate that we have a valid ID
         if (!projectId) {
-          console.error(`Invalid project ID for project ${i}:`, projectId);
           return null;
         }
         
@@ -453,9 +406,6 @@ export default function AdminDashboard() {
           sequence: i
         };
       }).filter(Boolean); // Remove any null entries
-      
-      console.log('Auto-sequencing sequences:', sequences);
-      console.log('Sequences length:', sequences.length);
       
       if (sequences.length === 0) {
         throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
@@ -489,7 +439,7 @@ export default function AdminDashboard() {
         }
       }
       
-      await refreshSequenceData(); // Use the new refresh function
+      await refreshSequenceData();
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
@@ -685,11 +635,19 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
-                <button onClick={refreshSequenceData} className="btn-primary">Refresh</button>
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-cream-300">Projects: {projects.length}</span>
+                  <button onClick={refreshSequenceData} className="btn-primary">Refresh</button>
+                </div>
               </div>
               
               <div className="bg-charcoal-800/50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-cream-100 mb-4">Drag to reorder projects</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-cream-100">Drag to reorder projects</h3>
+                  <div className="text-xs text-cream-300">
+                    Data source: {projects.length > 0 && projects[0]._id && typeof projects[0]._id === 'string' && projects[0]._id.length > 10 ? 'MongoDB' : 'Portfolio JSON'}
+                  </div>
+                </div>
                 <div className="space-y-2">
                   {projects.map((project, index) => (
                     <div
