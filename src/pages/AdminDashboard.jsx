@@ -103,10 +103,16 @@ export default function AdminDashboard() {
   }
 
   function openModal(type, data = {}) {
+    console.log('=== openModal called ===');
+    console.log('Type:', type);
+    console.log('Data:', data);
+    
     setModal({ type, ...data });
     setForm(data);
     setImgFile(null);
     setImgPreview(data.image ? data.image : null);
+    
+    console.log('Modal state set to:', { type, ...data });
   }
 
   function closeModal() {
@@ -127,9 +133,11 @@ export default function AdminDashboard() {
   }
 
   async function handleSave(type) {
-    console.log('handleSave called with type:', type);
-    console.log('Current form data:', form);
-    console.log('Current imgFile:', imgFile);
+    console.log('=== handleSave called ===');
+    console.log('Type:', type);
+    console.log('Form data:', form);
+    console.log('ImgFile:', imgFile);
+    console.log('Modal:', modal);
     
     setLoading(true);
     try {
@@ -170,25 +178,34 @@ export default function AdminDashboard() {
         if (form.id || form._id) {
           const projectId = form.id || form._id;
           console.log('Updating existing project with ID:', projectId);
-          await portfolioAPI.update(projectId, projectData);
+          const result = await portfolioAPI.update(projectId, projectData);
+          console.log('Update result:', result);
         } else {
           console.log('Creating new project...');
-          // For creation, use the existing upload mechanism
-          await portfolioAPI.create(projectData);
+          const result = await portfolioAPI.create(projectData);
+          console.log('Create result:', result);
         }
       } else if (type === 'services') {
         console.log('Processing services save...');
+        console.log('Service data:', body);
         if (form.id) {
-          await servicesAPI.update(form.id, body);
+          console.log('Updating service with ID:', form.id);
+          const result = await servicesAPI.update(form.id, body);
+          console.log('Service update result:', result);
         } else {
-          await servicesAPI.create(body);
+          console.log('Creating new service...');
+          const result = await servicesAPI.create(body);
+          console.log('Service create result:', result);
         }
       }
       console.log('Save completed successfully');
       closeModal();
       loadAll();
     } catch (e) {
-      console.error('Error in handleSave:', e);
+      console.error('=== Error in handleSave ===');
+      console.error('Error details:', e);
+      console.error('Error message:', e.message);
+      console.error('Error response:', e.response);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -196,7 +213,12 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(type, id) {
-    console.log('handleDelete called with type:', type, 'id:', id);
+    console.log('=== handleDelete called ===');
+    console.log('Type:', type);
+    console.log('ID:', id);
+    console.log('ID type:', typeof id);
+    console.log('ID object:', id);
+    
     if (!window.confirm('Are you sure?')) return;
     setLoading(true);
     try {
@@ -204,15 +226,20 @@ export default function AdminDashboard() {
         // Use the project ID (could be _id or id)
         const projectId = id._id || id.id || id;
         console.log('Deleting portfolio project with ID:', projectId);
-        await portfolioAPI.delete(projectId);
+        const result = await portfolioAPI.delete(projectId);
+        console.log('Portfolio delete result:', result);
       } else if (type === 'services') {
         console.log('Deleting service with ID:', id);
-        await servicesAPI.delete(id);
+        const result = await servicesAPI.delete(id);
+        console.log('Service delete result:', result);
       }
       console.log('Delete completed successfully');
       loadAll();
     } catch (e) {
-      console.error('Error in handleDelete:', e);
+      console.error('=== Error in handleDelete ===');
+      console.error('Error details:', e);
+      console.error('Error message:', e.message);
+      console.error('Error response:', e.response);
       setError(e.message);
     } finally {
       setLoading(false);
