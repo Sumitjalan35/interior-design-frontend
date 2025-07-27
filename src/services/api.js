@@ -104,6 +104,7 @@ export const portfolioAPI = {
     return api.put('/projects/sequence', payload);
   },
   reorder: (projectIds) => api.post('/projects/reorder', { projectIds }),
+  syncPortfolio: () => api.post('/projects/sync-portfolio'),
 };
 
 // Services API

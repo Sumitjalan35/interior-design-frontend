@@ -74,7 +74,7 @@ export default function AdminDashboard() {
         console.log('No projects data available, using portfolio data as fallback');
         // Convert portfolio data to project format for sequence management
         const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
-          _id: item.id,
+          _id: item.id || item._id,
           title: item.title,
           category: item.category,
           sequence: item.sequence || 0,
@@ -366,6 +366,21 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleSyncPortfolio() {
+    console.log('handleSyncPortfolio called');
+    setLoading(true);
+    try {
+      await portfolioAPI.syncPortfolio();
+      await loadAll(); // Reload data after sync
+      alert('Portfolio data synced successfully!');
+    } catch (e) {
+      console.error('Error syncing portfolio:', e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Render modals
   function renderModal() {
     if (!modal) return null;
@@ -552,7 +567,10 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
-                <button onClick={loadAll} className="btn-primary">Refresh</button>
+                <div className="flex gap-2">
+                  <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
+                  <button onClick={loadAll} className="btn-primary">Refresh</button>
+                </div>
               </div>
               
               <div className="bg-charcoal-800/50 rounded-lg p-6">
