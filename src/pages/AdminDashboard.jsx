@@ -54,11 +54,16 @@ export default function AdminDashboard() {
       }
       
       // Filter out services with invalid IDs to prevent errors
-      const validServices = Array.isArray(s) ? s.filter(service => 
-        service.id && service.id !== null && service.id !== undefined && service.id !== 'null' && service.id !== 'undefined'
-      ) : [];
+      const validServices = Array.isArray(s) ? s.filter(service => {
+        const isValid = service.id && service.id !== null && service.id !== undefined && service.id !== 'null' && service.id !== 'undefined';
+        if (!isValid) {
+          console.log(`Filtering out invalid service:`, service);
+        }
+        return isValid;
+      }) : [];
       
       console.log(`Filtered services: ${validServices.length} valid out of ${Array.isArray(s) ? s.length : 0} total`);
+      console.log('Valid services:', validServices);
       
       setPortfolio(Array.isArray(p) ? p : []);
       setServices(validServices);
@@ -495,7 +500,13 @@ export default function AdminDashboard() {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Service Cards</h2>
-                <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
+                <div className="flex gap-2">
+                  <button onClick={() => {
+                    console.log('Force refreshing services data...');
+                    loadAll();
+                  }} className="btn-secondary">Refresh</button>
+                  <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
+                </div>
               </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
                 {services.map((card, idx) => {
