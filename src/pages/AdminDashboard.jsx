@@ -63,14 +63,9 @@ export default function AdminDashboard() {
         console.log('First project _id:', projectsData[0]?._id);
         console.log('First project id:', projectsData[0]?.id);
         console.log('Total projects loaded:', projectsData.length);
-      } else {
-        console.log('Projects data is not an array:', projectsData);
-      }
-      
-      // Set projects data, with fallback to portfolio data if projects are empty
-      if (Array.isArray(projectsData) && projectsData.length > 0) {
         setProjects(projectsData);
       } else {
+        console.log('Projects data is not an array:', projectsData);
         console.log('No projects data available, using portfolio data as fallback');
         // Convert portfolio data to project format for sequence management
         const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
@@ -154,6 +149,10 @@ export default function AdminDashboard() {
       }
       closeModal();
       loadAll();
+      // Also refresh sequence data to keep it in sync
+      if (type === 'portfolio') {
+        setTimeout(() => refreshSequenceData(), 1000);
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -171,6 +170,10 @@ export default function AdminDashboard() {
         await servicesAPI.delete(id);
       }
       loadAll();
+      // Also refresh sequence data to keep it in sync
+      if (type === 'portfolio') {
+        setTimeout(() => refreshSequenceData(), 1000);
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -256,7 +259,7 @@ export default function AdminDashboard() {
       console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
       
       await api.put('/projects/sequence', requestPayload);
-      loadAll();
+      await refreshSequenceData();
       alert('Project sequence updated successfully!');
     } catch (e) {
       console.error('Error updating sequence:', e);
@@ -300,11 +303,51 @@ export default function AdminDashboard() {
       }
       
       await api.put('/projects/sequence', { sequences });
-      loadAll();
+      await refreshSequenceData();
       alert('Project sequence saved successfully!');
     } catch (e) {
       console.error('Error saving sequence:', e);
       setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function refreshSequenceData() {
+    console.log('Refreshing sequence data...');
+    setLoading(true);
+    try {
+      const response = await api.get('/projects/sequence');
+      console.log('Sequence API response:', response);
+      
+      let projectsData = response.data;
+      if (response.data && response.data.data) {
+        projectsData = response.data.data;
+      }
+      
+      console.log('Extracted projects data:', projectsData);
+      
+      if (Array.isArray(projectsData)) {
+        console.log('Setting projects data:', projectsData.length, 'projects');
+        setProjects(projectsData);
+      } else {
+        console.log('Projects data is not an array, using portfolio fallback');
+        // Fallback to portfolio data
+        const portfolioResponse = await portfolioAPI.getAll();
+        const portfolioData = portfolioResponse.data;
+        const portfolioAsProjects = Array.isArray(portfolioData) ? portfolioData.map(item => ({
+          _id: item.id,
+          title: item.title,
+          category: item.category,
+          sequence: item.sequence || 0,
+          published: true,
+          featured: item.featured || false
+        })) : [];
+        setProjects(portfolioAsProjects);
+      }
+    } catch (e) {
+      console.error('Error refreshing sequence data:', e);
+      setError('Failed to refresh sequence data');
     } finally {
       setLoading(false);
     }
@@ -356,7 +399,7 @@ export default function AdminDashboard() {
       }
       
       await api.put('/projects/sequence', { sequences });
-      await loadAll(); // Reload data after update
+      await refreshSequenceData(); // Use the new refresh function
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
@@ -552,7 +595,7 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
-                <button onClick={loadAll} className="btn-primary">Refresh</button>
+                <button onClick={refreshSequenceData} className="btn-primary">Refresh</button>
               </div>
               
               <div className="bg-charcoal-800/50 rounded-lg p-6">
