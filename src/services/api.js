@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 if (!apiBaseUrl) {
-  throw new Error('VITE_API_URL environment variable must be set for production.');
+  console.warn('VITE_API_URL environment variable is not set. Please set it for production.');
 }
 // Create axios instance
 const api = axios.create({
@@ -108,11 +108,7 @@ export const portfolioAPI = {
 
 // Services API
 export const servicesAPI = {
-  getAll: () => api.get('/services', { 
-    params: { 
-      _t: Date.now() // Cache busting
-    } 
-  }),
+  getAll: () => api.get('/services'),
   create: (serviceData) => api.post('/admin/services', serviceData),
   update: (id, serviceData) => api.put(`/admin/services/${id}`, serviceData),
   delete: (id) => api.delete(`/admin/services/${id}`),
