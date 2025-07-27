@@ -113,20 +113,7 @@ export const adminAPI = {
 // Portfolio API
 export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
-  create: (portfolioData) => {
-    // If portfolioData is FormData, send it directly
-    if (portfolioData instanceof FormData) {
-      return fetch(`${apiBaseUrl}/api/projects`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
-        },
-        body: portfolioData
-      });
-    }
-    // Otherwise send as JSON
-    return api.post('/projects', portfolioData);
-  },
+  create: (portfolioData) => api.post('/projects/json', portfolioData),
   update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
   delete: (id) => api.delete(`/projects/${id}`),
   getSequence: () => api.get('/projects/sequence'),
