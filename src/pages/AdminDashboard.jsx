@@ -168,14 +168,36 @@ export default function AdminDashboard() {
     try {
       let image = form.image;
       if (imgFile) image = await uploadImage(imgFile);
-      let body = { ...form, image };
+      
       if (type === 'portfolio') {
+        let body = { ...form, image };
         if (form.id) {
           await portfolioAPI.update(form.id, body);
         } else {
           await portfolioAPI.create(body);
         }
       } else if (type === 'services') {
+        // Validate required fields for services
+        if (!form.title || !form.description) {
+          throw new Error('Title and description are required for services');
+        }
+        
+        // For services, we need to ensure proper structure
+        let body = { 
+          ...form, 
+          image,
+          icon: form.icon || 'fas fa-couch' // Default icon if not provided
+        };
+        
+        // Generate a unique ID for new services if not provided
+        if (!form.id) {
+          const timestamp = Date.now();
+          const randomId = Math.random().toString(36).substr(2, 9);
+          body.id = `SERVICE_${timestamp}_${randomId}`.toUpperCase();
+        }
+        
+        console.log('Saving service with body:', body);
+        
         if (form.id) {
           await servicesAPI.update(form.id, body);
         } else {
@@ -185,6 +207,7 @@ export default function AdminDashboard() {
       closeModal();
       loadAll();
     } catch (e) {
+      console.error('Error saving:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -383,6 +406,47 @@ export default function AdminDashboard() {
     }
   }
 
+  async function cleanupInvalidServices() {
+    if (!window.confirm('This will remove all services with invalid IDs. Continue?')) return;
+    
+    setLoading(true);
+    try {
+      // Get all services
+      const response = await servicesAPI.getAll();
+      const allServices = response.data || [];
+      
+      // Find services with invalid IDs
+      const invalidServices = allServices.filter(service => 
+        !service.id || service.id === null || service.id === undefined || service.id === 'null' || service.id === 'undefined'
+      );
+      
+      console.log(`Found ${invalidServices.length} invalid services to clean up:`, invalidServices);
+      
+      // Delete each invalid service
+      for (const service of invalidServices) {
+        try {
+          // Try to delete by index or other means if ID is null
+          if (service.id === null || service.id === undefined) {
+            console.log('Cannot delete service with null ID:', service);
+            continue;
+          }
+          await servicesAPI.delete(service.id);
+          console.log(`Deleted invalid service: ${service.title}`);
+        } catch (error) {
+          console.error(`Failed to delete service ${service.title}:`, error);
+        }
+      }
+      
+      alert(`Cleanup completed. Removed ${invalidServices.length} invalid services.`);
+      loadAll();
+    } catch (e) {
+      console.error('Error during cleanup:', e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Render modals
   function renderModal() {
     if (!modal) return null;
@@ -394,6 +458,9 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-gold-400 mb-2">{form.id ? 'Edit' : 'Add'} {modal.type === 'portfolio' ? 'Portfolio Card' : 'Service Card'}</h2>
             <input name="title" value={form.title || ''} onChange={handleChange} placeholder="Title" className="input-dark" required />
             <textarea name="description" value={form.description || ''} onChange={handleChange} placeholder="Description" className="input-dark" rows={3} required />
+            {modal.type === 'services' && (
+              <input name="icon" value={form.icon || 'fas fa-couch'} onChange={handleChange} placeholder="Icon (e.g., fas fa-couch)" className="input-dark" />
+            )}
             <input type="file" accept="image/*" onChange={handleImgChange} />
             {imgPreview && <ImagePreview src={imgPreview} alt="Preview" />}
             <button onClick={() => handleSave(modal.type)} className="btn-primary w-full">{form.id ? 'Save Changes' : 'Add'}</button>
@@ -506,6 +573,7 @@ export default function AdminDashboard() {
                     loadAll();
                   }} className="btn-secondary">Refresh</button>
                   <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
+                  <button onClick={cleanupInvalidServices} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Cleanup Invalid Services</button>
                 </div>
               </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
