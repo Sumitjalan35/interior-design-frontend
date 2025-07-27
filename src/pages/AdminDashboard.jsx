@@ -35,84 +35,54 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [p, s, ss, projectsResponse, realProjectsResponse] = await Promise.all([
+      const [p, s, ss, projectsResponse] = await Promise.all([
         portfolioAPI.getAll().then(r => r.data),
         servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
         api.get('/projects/sequence').then(r => r.data),
-        api.get('/projects').then(r => r.data),
       ]);
-      
-      // Debug: Log services data to identify any with null IDs
-      console.log('Services data loaded:', s);
-      if (Array.isArray(s)) {
-        s.forEach((service, index) => {
-          if (!service.id || service.id === null || service.id === undefined) {
-            console.error(`Service at index ${index} has invalid ID:`, JSON.stringify(service, null, 2));
-          }
-        });
-      }
-      
-      // Filter out services with invalid IDs to prevent errors
-      const validServices = Array.isArray(s) ? s.filter(service => {
-        const isValid = service.id && service.id !== null && service.id !== undefined && service.id !== 'null' && service.id !== 'undefined';
-        if (!isValid) {
-          console.log(`Filtering out invalid service:`, service);
-        }
-        return isValid;
-      }) : [];
-      
-      console.log(`Filtered services: ${validServices.length} valid out of ${Array.isArray(s) ? s.length : 0} total`);
-      console.log('Valid services:', validServices);
-      
       setPortfolio(Array.isArray(p) ? p : []);
-      setServices(validServices);
+      setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
-      let realProjectsArr = realProjectsResponse && realProjectsResponse.data ? realProjectsResponse.data : realProjectsResponse;
-      if (!Array.isArray(realProjectsArr)) realProjectsArr = [];
-      const realProjectIdSet = new Set(realProjectsArr.map(proj => (proj._id || proj.id)));
-      // --- Merge sequence with portfolio, but allow all portfolio projects ---
-      const portfolioArr = Array.isArray(p) ? p : [];
-      const portfolioMap = {};
-      portfolioArr.forEach(item => {
-        portfolioMap[item.id] = item;
-      });
+      
+      // Debug: Log the projects data structure
+      console.log('Raw projects response:', projectsResponse);
+      console.log('Projects response type:', typeof projectsResponse);
+      console.log('Is array:', Array.isArray(projectsResponse));
+      
+      // Extract the actual projects data from the response
       let projectsData = projectsResponse;
       if (projectsResponse && projectsResponse.data) {
         projectsData = projectsResponse.data;
+        console.log('Extracted projects data from response.data:', projectsData);
       }
-      // Get localStorage order for portfolio-only projects
-      const portfolioOnlySequence = getPortfolioOnlySequence();
-      // Build a map of all portfolio projects (real and portfolio-only)
-      const allPortfolioProjects = portfolioArr.map(item => {
-        // Try to find sequence from backend or localStorage
-        let sequence = null;
-        // If real project, get sequence from backend if available
-        if (realProjectIdSet.has(item.id)) {
-          const backendProj = Array.isArray(projectsData) ? projectsData.find(seqProj => (seqProj._id || seqProj.id) === item.id) : null;
-          sequence = backendProj ? backendProj.sequence : null;
-        } else {
-          // Portfolio-only: get sequence from localStorage
-          const idx = portfolioOnlySequence.indexOf(item.id);
-          sequence = idx !== -1 ? idx + 10000 : null; // offset to always put after real projects if not reordered
-        }
-        return {
+      
+      if (Array.isArray(projectsData)) {
+        console.log('First project structure:', projectsData[0]);
+        console.log('First project keys:', Object.keys(projectsData[0] || {}));
+        console.log('First project _id:', projectsData[0]?._id);
+        console.log('First project id:', projectsData[0]?.id);
+        console.log('Total projects loaded:', projectsData.length);
+      } else {
+        console.log('Projects data is not an array:', projectsData);
+      }
+      
+      // Set projects data, with fallback to portfolio data if projects are empty
+      if (Array.isArray(projectsData) && projectsData.length > 0) {
+        setProjects(projectsData);
+      } else {
+        console.log('No projects data available, using portfolio data as fallback');
+        // Convert portfolio data to project format for sequence management
+        const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
           _id: item.id,
           title: item.title,
           category: item.category,
-          sequence: sequence,
+          sequence: item.sequence || 0,
           published: true,
           featured: item.featured || false
-        };
-      });
-      // Sort by sequence, fallback to original order
-      allPortfolioProjects.sort((a, b) => {
-        if (a.sequence == null && b.sequence == null) return 0;
-        if (a.sequence == null) return 1;
-        if (b.sequence == null) return -1;
-        return a.sequence - b.sequence;
-      });
-      setProjects(allPortfolioProjects);
+        })) : [];
+        setProjects(portfolioAsProjects);
+      }
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
@@ -168,36 +138,14 @@ export default function AdminDashboard() {
     try {
       let image = form.image;
       if (imgFile) image = await uploadImage(imgFile);
-      
+      let body = { ...form, image };
       if (type === 'portfolio') {
-        let body = { ...form, image };
         if (form.id) {
           await portfolioAPI.update(form.id, body);
         } else {
           await portfolioAPI.create(body);
         }
       } else if (type === 'services') {
-        // Validate required fields for services
-        if (!form.title || !form.description) {
-          throw new Error('Title and description are required for services');
-        }
-        
-        // For services, we need to ensure proper structure
-        let body = { 
-          ...form, 
-          image,
-          icon: form.icon || 'fas fa-couch' // Default icon if not provided
-        };
-        
-        // Generate a unique ID for new services if not provided
-        if (!form.id) {
-          const timestamp = Date.now();
-          const randomId = Math.random().toString(36).substr(2, 9);
-          body.id = `SERVICE_${timestamp}_${randomId}`.toUpperCase();
-        }
-        
-        console.log('Saving service with body:', body);
-        
         if (form.id) {
           await servicesAPI.update(form.id, body);
         } else {
@@ -207,7 +155,6 @@ export default function AdminDashboard() {
       closeModal();
       loadAll();
     } catch (e) {
-      console.error('Error saving:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -215,26 +162,7 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(type, id) {
-    console.log('handleDelete called with:', { type, id, idType: typeof id, isNull: id === null, isUndefined: id === undefined });
-    
     if (!window.confirm('Are you sure?')) return;
-    
-    // Validate that we have a valid ID
-    if (!id || id === null || id === undefined || id === 'null' || id === 'undefined') {
-      console.error(`Invalid ID for ${type} delete:`, { id, idType: typeof id });
-      setError(`Cannot delete ${type} item: Invalid ID (${id})`);
-      return;
-    }
-    
-    // Additional validation for string IDs
-    if (typeof id === 'string' && (id.trim() === '' || id.toLowerCase() === 'null' || id.toLowerCase() === 'undefined')) {
-      console.error(`Invalid string ID for ${type} delete:`, { id });
-      setError(`Cannot delete ${type} item: Invalid ID (${id})`);
-      return;
-    }
-    
-    console.log(`Proceeding with delete for ${type} with ID:`, id);
-    
     setLoading(true);
     try {
       if (type === 'portfolio') {
@@ -244,7 +172,6 @@ export default function AdminDashboard() {
       }
       loadAll();
     } catch (e) {
-      console.error(`Error deleting ${type} with ID ${id}:`, e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -339,43 +266,40 @@ export default function AdminDashboard() {
     }
   }
 
-  // Utility to check for valid MongoDB ObjectId
-  function isValidObjectId(id) {
-    return typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]{24}$/.test(id);
-  }
-
-  // Utility to get and set localStorage for portfolio-only sequence
-  function getPortfolioOnlySequence() {
-    try {
-      return JSON.parse(localStorage.getItem('portfolioOnlySequence') || '[]');
-    } catch {
-      return [];
-    }
-  }
-  function setPortfolioOnlySequence(seq) {
-    localStorage.setItem('portfolioOnlySequence', JSON.stringify(seq));
-  }
-
   async function handleSaveSequence() {
+    console.log('handleSaveSequence called');
     setLoading(true);
     try {
-      // Split into real and portfolio-only
-      const realSequences = [];
-      const portfolioOnlyIds = [];
-      projects.forEach((project, i) => {
+      // Debug: Log the projects structure
+      console.log('Projects array:', projects);
+      console.log('First project:', projects[0]);
+      console.log('Available keys:', Object.keys(projects[0] || {}));
+      
+      // Create sequences array with proper project IDs
+      const sequences = projects.map((project, i) => {
         const projectId = project._id || project.id || project._id?.toString();
-        if (isValidObjectId(projectId)) {
-          realSequences.push({ id: projectId, sequence: i });
-        } else {
-          portfolioOnlyIds.push(projectId);
+        console.log(`Project ${i}:`, project);
+        console.log(`Project ${i} ID:`, projectId);
+        
+        // Validate that we have a valid ID
+        if (!projectId) {
+          console.error(`Invalid project ID for project ${i}:`, projectId);
+          return null;
         }
-      });
-      // Save real project sequence to backend
-      if (realSequences.length > 0) {
-        await api.put('/projects/sequence', { sequences: realSequences });
+        
+        return {
+          id: projectId,
+          sequence: i
+        };
+      }).filter(Boolean); // Remove any null entries
+      
+      console.log('Saving sequences:', sequences);
+      
+      if (sequences.length === 0) {
+        throw new Error('No valid project IDs found');
       }
-      // Save portfolio-only order to localStorage
-      setPortfolioOnlySequence(portfolioOnlyIds);
+      
+      await api.put('/projects/sequence', { sequences });
       loadAll();
       alert('Project sequence saved successfully!');
     } catch (e) {
@@ -387,60 +311,55 @@ export default function AdminDashboard() {
   }
 
   async function handleAutoSequence() {
+    console.log('handleAutoSequence called');
+    console.log('Current projects state:', projects);
+    console.log('Projects length:', projects.length);
+    
     setLoading(true);
     try {
       if (!Array.isArray(projects) || projects.length === 0) {
         throw new Error('No projects available for sequencing. Please refresh the page.');
       }
-      // Sort all projects alphabetically
-      const sorted = [...projects].sort((a, b) => a.title.localeCompare(b.title));
-      setProjects(sorted);
-      // Save immediately
-      await handleSaveSequence();
+      
+      const projectList = [...projects];
+      projectList.sort((a, b) => a.title.localeCompare(b.title));
+      
+      // Debug: Log the project structure
+      console.log('Sorted projects array:', projectList);
+      console.log('First project:', projectList[0]);
+      console.log('Available keys:', Object.keys(projectList[0] || {}));
+      
+      // Create sequences array with proper project IDs
+      const sequences = projectList.map((project, i) => {
+        const projectId = project._id || project.id || project._id?.toString();
+        console.log(`Project ${i}:`, project);
+        console.log(`Project ${i} ID:`, projectId);
+        console.log(`Project ${i} title:`, project.title);
+        
+        // Validate that we have a valid ID
+        if (!projectId) {
+          console.error(`Invalid project ID for project ${i}:`, projectId);
+          return null;
+        }
+        
+        return {
+          id: projectId,
+          sequence: i
+        };
+      }).filter(Boolean); // Remove any null entries
+      
+      console.log('Auto-sequencing sequences:', sequences);
+      console.log('Sequences length:', sequences.length);
+      
+      if (sequences.length === 0) {
+        throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
+      }
+      
+      await api.put('/projects/sequence', { sequences });
+      await loadAll(); // Reload data after update
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function cleanupInvalidServices() {
-    if (!window.confirm('This will remove all services with invalid IDs. Continue?')) return;
-    
-    setLoading(true);
-    try {
-      // Get all services
-      const response = await servicesAPI.getAll();
-      const allServices = response.data || [];
-      
-      // Find services with invalid IDs
-      const invalidServices = allServices.filter(service => 
-        !service.id || service.id === null || service.id === undefined || service.id === 'null' || service.id === 'undefined'
-      );
-      
-      console.log(`Found ${invalidServices.length} invalid services to clean up:`, invalidServices);
-      
-      // Delete each invalid service
-      for (const service of invalidServices) {
-        try {
-          // Try to delete by index or other means if ID is null
-          if (service.id === null || service.id === undefined) {
-            console.log('Cannot delete service with null ID:', service);
-            continue;
-          }
-          await servicesAPI.delete(service.id);
-          console.log(`Deleted invalid service: ${service.title}`);
-        } catch (error) {
-          console.error(`Failed to delete service ${service.title}:`, error);
-        }
-      }
-      
-      alert(`Cleanup completed. Removed ${invalidServices.length} invalid services.`);
-      loadAll();
-    } catch (e) {
-      console.error('Error during cleanup:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -458,9 +377,6 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-gold-400 mb-2">{form.id ? 'Edit' : 'Add'} {modal.type === 'portfolio' ? 'Portfolio Card' : 'Service Card'}</h2>
             <input name="title" value={form.title || ''} onChange={handleChange} placeholder="Title" className="input-dark" required />
             <textarea name="description" value={form.description || ''} onChange={handleChange} placeholder="Description" className="input-dark" rows={3} required />
-            {modal.type === 'services' && (
-              <input name="icon" value={form.icon || 'fas fa-couch'} onChange={handleChange} placeholder="Icon (e.g., fas fa-couch)" className="input-dark" />
-            )}
             <input type="file" accept="image/*" onChange={handleImgChange} />
             {imgPreview && <ImagePreview src={imgPreview} alt="Preview" />}
             <button onClick={() => handleSave(modal.type)} className="btn-primary w-full">{form.id ? 'Save Changes' : 'Add'}</button>
@@ -567,60 +483,24 @@ export default function AdminDashboard() {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Service Cards</h2>
-                <div className="flex gap-2">
-                  <button onClick={() => {
-                    console.log('Force refreshing services data...');
-                    loadAll();
-                  }} className="btn-secondary">Refresh</button>
-                  <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
-                  <button onClick={cleanupInvalidServices} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Cleanup Invalid Services</button>
-                </div>
+                <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
               </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-                {services.map((card, idx) => {
-                  // Validate that the service has a valid ID
-                  const hasValidId = card.id && card.id !== null && card.id !== undefined && card.id !== 'null' && card.id !== 'undefined';
-                  
-                  if (!hasValidId) {
-                    console.warn(`Service at index ${idx} is missing an ID:`, JSON.stringify(card, null, 2));
-                    return (
-                      <div key={`invalid-${idx}`} className="relative border-2 border-red-500 rounded-lg p-4">
-                        <div className="text-red-400 text-sm mb-2">⚠️ Invalid Service (Missing ID)</div>
-                        <div className="text-cream-100 font-medium">{card.title || 'Untitled'}</div>
-                        <div className="text-cream-300 text-sm">{card.description || 'No description'}</div>
-                        <div className="mt-2 text-red-400 text-xs">
-                          This service cannot be edited or deleted due to missing ID.
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  console.log(`Rendering service with valid ID: ${card.id}`, card);
-                  
-                  return (
-                    <div key={card.id} className="relative">
-                      <ServiceCard
-                        icon={card.icon || 'fas fa-couch'}
-                        title={card.title}
-                        description={card.description}
-                        className="w-full"
-                      />
-                      {/* Admin Controls */}
-                      <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
-                        <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
-                        <button 
-                          onClick={() => {
-                            console.log(`Delete button clicked for service with ID: ${card.id}`);
-                            handleDelete('services', card.id);
-                          }} 
-                          className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                {services.map((card, idx) => (
+                  <div key={card.id} className="relative">
+                    <ServiceCard
+                      icon={card.icon || 'fas fa-couch'}
+                      title={card.title}
+                      description={card.description}
+                      className="w-full"
+                    />
+                    {/* Admin Controls */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                      <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
+                      <button onClick={() => handleDelete('services', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           )}
