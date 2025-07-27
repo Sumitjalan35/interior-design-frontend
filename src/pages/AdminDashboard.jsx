@@ -429,6 +429,35 @@ export default function AdminDashboard() {
     }
   }
 
+  // Test function to check authentication
+  async function testAuth() {
+    console.log('Testing authentication...');
+    const token = localStorage.getItem('admin_token');
+    console.log('Token exists:', !!token);
+    console.log('Token length:', token ? token.length : 0);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Auth test response status:', response.status);
+      const data = await response.json();
+      console.log('Auth test response data:', data);
+      
+      if (response.ok) {
+        alert('Authentication is working! User: ' + data.data.name);
+      } else {
+        alert('Authentication failed: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Auth test error:', error);
+      alert('Authentication test failed: ' + error.message);
+    }
+  }
+
   // Render modals
   function renderModal() {
     if (!modal) return null;
@@ -640,6 +669,7 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-bold text-cream-100">Project Sequence Management</h2>
                 <div className="flex gap-2">
                   <button onClick={handleSyncPortfolio} className="btn-secondary">Sync Portfolio</button>
+            <button onClick={testAuth} className="btn-secondary">Test Auth</button>
                   <button onClick={loadAll} className="btn-primary">Refresh</button>
                 </div>
               </div>
