@@ -35,15 +35,11 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [p, s, ss, projectsResponse] = await Promise.all([
-        portfolioAPI.getAll().then(r => r.data),
+      const [projectsResponse, s, ss] = await Promise.all([
+        api.get('/projects').then(r => r.data),
         servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
-        api.get('/projects/sequence').then(r => r.data),
       ]);
-      setPortfolio(Array.isArray(p) ? p : []);
-      setServices(Array.isArray(s) ? s : []);
-      setSlideshow(Array.isArray(ss) ? ss : []);
       
       // Debug: Log the projects data structure
       console.log('Raw projects response:', projectsResponse);
@@ -67,22 +63,19 @@ export default function AdminDashboard() {
         console.log('Projects data is not an array:', projectsData);
       }
       
-      // Set projects data, with fallback to portfolio data if projects are empty
+      // Set projects data for admin dashboard
       if (Array.isArray(projectsData) && projectsData.length > 0) {
         setProjects(projectsData);
+        // Also set portfolio data for backward compatibility
+        setPortfolio(projectsData);
       } else {
-        console.log('No projects data available, using portfolio data as fallback');
-        // Convert portfolio data to project format for sequence management
-        const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
-          _id: item.id || item._id,
-          title: item.title,
-          category: item.category,
-          sequence: item.sequence || 0,
-          published: true,
-          featured: item.featured || false
-        })) : [];
-        setProjects(portfolioAsProjects);
+        console.log('No projects data available');
+        setProjects([]);
+        setPortfolio([]);
       }
+      
+      setServices(Array.isArray(s) ? s : []);
+      setSlideshow(Array.isArray(ss) ? ss : []);
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
