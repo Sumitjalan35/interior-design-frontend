@@ -169,7 +169,28 @@ export default function AdminDashboard() {
           const projectId = form.id || form._id;
           await portfolioAPI.update(projectId, projectData);
         } else {
-          await portfolioAPI.create(projectData);
+          // For creation, we need to send as FormData if there are images
+          if (imgFile) {
+            const formData = new FormData();
+            formData.append('images', imgFile);
+            formData.append('title', projectData.title);
+            formData.append('description', projectData.description);
+            formData.append('category', projectData.category);
+            formData.append('location', projectData.location);
+            formData.append('area', projectData.area);
+            formData.append('budget', projectData.budget);
+            formData.append('duration', projectData.duration);
+            formData.append('sequence', projectData.sequence);
+            formData.append('featured', projectData.featured);
+            formData.append('published', projectData.published);
+            formData.append('services', JSON.stringify(projectData.services));
+            formData.append('clientName', projectData.client.name);
+            formData.append('clientTestimonial', projectData.client.testimonial);
+            
+            await portfolioAPI.create(formData);
+          } else {
+            await portfolioAPI.create(projectData);
+          }
         }
       } else if (type === 'services') {
         if (form.id) {

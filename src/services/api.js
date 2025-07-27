@@ -20,6 +20,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Debug logging
+    console.log('API Request:', {
+      method: config.method,
+      url: config.url,
+      hasToken: !!token,
+      headers: config.headers
+    });
     return config;
   },
   (error) => {
@@ -30,9 +37,23 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    // Debug logging
+    console.log('API Response:', {
+      status: response.status,
+      url: response.config.url,
+      data: response.data
+    });
     return response;
   },
   (error) => {
+    // Debug logging
+    console.error('API Error:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      message: error.message,
+      data: error.response?.data
+    });
+    
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');
@@ -92,7 +113,20 @@ export const adminAPI = {
 // Portfolio API
 export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
-  create: (portfolioData) => api.post('/projects', portfolioData),
+  create: (portfolioData) => {
+    // If portfolioData is FormData, send it directly
+    if (portfolioData instanceof FormData) {
+      return fetch(`${apiBaseUrl}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+        },
+        body: portfolioData
+      });
+    }
+    // Otherwise send as JSON
+    return api.post('/projects', portfolioData);
+  },
   update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
   delete: (id) => api.delete(`/projects/${id}`),
   getSequence: () => api.get('/projects/sequence'),
