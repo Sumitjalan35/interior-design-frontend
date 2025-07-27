@@ -134,14 +134,21 @@ export default function AdminDashboard() {
   }
 
   async function handleSave(type) {
+    console.log('handleSave called with type:', type);
+    console.log('Current form data:', form);
+    console.log('Current imgFile:', imgFile);
+    
     setLoading(true);
     try {
       let body = { ...form };
       
       if (type === 'portfolio') {
+        console.log('Processing portfolio save...');
         // Handle portfolio/project creation/update
         if (imgFile) {
+          console.log('Uploading image...');
           const imageUrl = await uploadImage(imgFile);
+          console.log('Image uploaded, URL:', imageUrl);
           body.images = [{ url: imageUrl, alt: form.title, isPrimary: true }];
         }
         
@@ -165,23 +172,30 @@ export default function AdminDashboard() {
           images: body.images || []
         };
         
+        console.log('Project data prepared:', projectData);
+        
         if (form.id || form._id) {
           const projectId = form.id || form._id;
+          console.log('Updating existing project with ID:', projectId);
           await portfolioAPI.update(projectId, projectData);
         } else {
+          console.log('Creating new project...');
           // For creation, use the existing upload mechanism
           await portfolioAPI.create(projectData);
         }
       } else if (type === 'services') {
+        console.log('Processing services save...');
         if (form.id) {
           await servicesAPI.update(form.id, body);
         } else {
           await servicesAPI.create(body);
         }
       }
+      console.log('Save completed successfully');
       closeModal();
       loadAll();
     } catch (e) {
+      console.error('Error in handleSave:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -189,18 +203,23 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(type, id) {
+    console.log('handleDelete called with type:', type, 'id:', id);
     if (!window.confirm('Are you sure?')) return;
     setLoading(true);
     try {
       if (type === 'portfolio') {
         // Use the project ID (could be _id or id)
         const projectId = id._id || id.id || id;
+        console.log('Deleting portfolio project with ID:', projectId);
         await portfolioAPI.delete(projectId);
       } else if (type === 'services') {
+        console.log('Deleting service with ID:', id);
         await servicesAPI.delete(id);
       }
+      console.log('Delete completed successfully');
       loadAll();
     } catch (e) {
+      console.error('Error in handleDelete:', e);
       setError(e.message);
     } finally {
       setLoading(false);

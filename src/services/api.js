@@ -25,7 +25,9 @@ api.interceptors.request.use(
       method: config.method,
       url: config.url,
       hasToken: !!token,
-      headers: config.headers
+      tokenLength: token ? token.length : 0,
+      headers: config.headers,
+      data: config.data
     });
     return config;
   },
@@ -113,9 +115,18 @@ export const adminAPI = {
 // Portfolio API
 export const portfolioAPI = {
   getAll: () => api.get('/portfolio'),
-  create: (portfolioData) => api.post('/projects/json', portfolioData),
-  update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
-  delete: (id) => api.delete(`/projects/${id}`),
+  create: (portfolioData) => {
+    console.log('portfolioAPI.create called with:', portfolioData);
+    return api.post('/projects/json', portfolioData);
+  },
+  update: (id, portfolioData) => {
+    console.log('portfolioAPI.update called with:', { id, portfolioData });
+    return api.put(`/projects/${id}`, portfolioData);
+  },
+  delete: (id) => {
+    console.log('portfolioAPI.delete called with:', id);
+    return api.delete(`/projects/${id}`);
+  },
   getSequence: () => api.get('/projects/sequence'),
   updateSequence: (sequences) => {
     console.log('portfolioAPI.updateSequence called with:', sequences);
