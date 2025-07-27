@@ -170,6 +170,13 @@ export default function AdminDashboard() {
 
   async function handleDelete(type, id) {
     if (!window.confirm('Are you sure?')) return;
+    
+    // Validate that we have a valid ID
+    if (!id || id === null || id === undefined) {
+      setError(`Cannot delete ${type} item: Invalid ID`);
+      return;
+    }
+    
     setLoading(true);
     try {
       if (type === 'portfolio') {
@@ -460,21 +467,38 @@ export default function AdminDashboard() {
                 <button onClick={() => openModal('services')} className="btn-primary">Add New</button>
               </div>
               <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-                {services.map((card, idx) => (
-                  <div key={card.id} className="relative">
-                    <ServiceCard
-                      icon={card.icon || 'fas fa-couch'}
-                      title={card.title}
-                      description={card.description}
-                      className="w-full"
-                    />
-                    {/* Admin Controls */}
-                    <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
-                      <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
-                      <button onClick={() => handleDelete('services', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                {services.map((card, idx) => {
+                  // Validate that the service has a valid ID
+                  if (!card.id) {
+                    console.warn(`Service at index ${idx} is missing an ID:`, card);
+                    return (
+                      <div key={`invalid-${idx}`} className="relative border-2 border-red-500 rounded-lg p-4">
+                        <div className="text-red-400 text-sm mb-2">⚠️ Invalid Service (Missing ID)</div>
+                        <div className="text-cream-100 font-medium">{card.title || 'Untitled'}</div>
+                        <div className="text-cream-300 text-sm">{card.description || 'No description'}</div>
+                        <div className="mt-2 text-red-400 text-xs">
+                          This service cannot be edited or deleted due to missing ID.
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div key={card.id} className="relative">
+                      <ServiceCard
+                        icon={card.icon || 'fas fa-couch'}
+                        title={card.title}
+                        description={card.description}
+                        className="w-full"
+                      />
+                      {/* Admin Controls */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                        <button onClick={() => openModal('services', card)} className="btn-secondary text-xs">Edit</button>
+                        <button onClick={() => handleDelete('services', card.id)} className="btn-secondary bg-red-600 hover:bg-red-700 text-white text-xs">Delete</button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
