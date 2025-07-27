@@ -91,7 +91,7 @@ export const adminAPI = {
 
 // Portfolio API
 export const portfolioAPI = {
-  getAll: () => api.get('/portfolio'),
+  getAll: () => api.get('/projects'),
   create: (portfolioData) => api.post('/projects/json', portfolioData),
   update: (id, portfolioData) => api.put(`/projects/${id}`, portfolioData),
   delete: (id) => api.delete(`/projects/${id}`),

@@ -36,12 +36,11 @@ export default function AdminDashboard() {
     setError('');
     try {
       const [projectsResponse, s, ss] = await Promise.all([
-        api.get('/projects').then(r => r.data),
+        portfolioAPI.getAll().then(r => r.data),
         api.get('/admin/services').then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
       ]);
       
-      // Set projects data for admin dashboard
       if (projectsResponse && projectsResponse.data && Array.isArray(projectsResponse.data)) {
         setProjects(projectsResponse.data);
         setPortfolio(projectsResponse.data);
@@ -53,7 +52,6 @@ export default function AdminDashboard() {
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
     } catch (e) {
-      console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
     } finally {
       setLoading(false);
