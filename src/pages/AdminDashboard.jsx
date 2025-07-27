@@ -270,39 +270,27 @@ export default function AdminDashboard() {
     }
   }
 
+  // Utility to check for valid MongoDB ObjectId
+  function isValidObjectId(id) {
+    return typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]{24}$/.test(id);
+  }
+
   async function handleSaveSequence() {
     console.log('handleSaveSequence called');
     setLoading(true);
     try {
-      // Debug: Log the projects structure
-      console.log('Projects array:', projects);
-      console.log('First project:', projects[0]);
-      console.log('Available keys:', Object.keys(projects[0] || {}));
-      
-      // Create sequences array with proper project IDs
-      const sequences = projects.map((project, i) => {
-        const projectId = project._id || project.id || project._id?.toString();
-        console.log(`Project ${i}:`, project);
-        console.log(`Project ${i} ID:`, projectId);
-        
-        // Validate that we have a valid ID
-        if (!projectId) {
-          console.error(`Invalid project ID for project ${i}:`, projectId);
-          return null;
-        }
-        
-        return {
-          id: projectId,
-          sequence: i
-        };
-      }).filter(Boolean); // Remove any null entries
-      
+      // Only include projects with valid MongoDB ObjectIds
+      const sequences = projects
+        .map((project, i) => {
+          const projectId = project._id || project.id || project._id?.toString();
+          if (!isValidObjectId(projectId)) return null;
+          return { id: projectId, sequence: i };
+        })
+        .filter(Boolean);
       console.log('Saving sequences:', sequences);
-      
       if (sequences.length === 0) {
         throw new Error('No valid project IDs found');
       }
-      
       await api.put('/projects/sequence', { sequences });
       loadAll();
       alert('Project sequence saved successfully!');
@@ -316,51 +304,27 @@ export default function AdminDashboard() {
 
   async function handleAutoSequence() {
     console.log('handleAutoSequence called');
-    console.log('Current projects state:', projects);
-    console.log('Projects length:', projects.length);
-    
     setLoading(true);
     try {
       if (!Array.isArray(projects) || projects.length === 0) {
         throw new Error('No projects available for sequencing. Please refresh the page.');
       }
-      
       const projectList = [...projects];
       projectList.sort((a, b) => a.title.localeCompare(b.title));
-      
-      // Debug: Log the project structure
-      console.log('Sorted projects array:', projectList);
-      console.log('First project:', projectList[0]);
-      console.log('Available keys:', Object.keys(projectList[0] || {}));
-      
-      // Create sequences array with proper project IDs
-      const sequences = projectList.map((project, i) => {
-        const projectId = project._id || project.id || project._id?.toString();
-        console.log(`Project ${i}:`, project);
-        console.log(`Project ${i} ID:`, projectId);
-        console.log(`Project ${i} title:`, project.title);
-        
-        // Validate that we have a valid ID
-        if (!projectId) {
-          console.error(`Invalid project ID for project ${i}:`, projectId);
-          return null;
-        }
-        
-        return {
-          id: projectId,
-          sequence: i
-        };
-      }).filter(Boolean); // Remove any null entries
-      
+      // Only include projects with valid MongoDB ObjectIds
+      const sequences = projectList
+        .map((project, i) => {
+          const projectId = project._id || project.id || project._id?.toString();
+          if (!isValidObjectId(projectId)) return null;
+          return { id: projectId, sequence: i };
+        })
+        .filter(Boolean);
       console.log('Auto-sequencing sequences:', sequences);
-      console.log('Sequences length:', sequences.length);
-      
       if (sequences.length === 0) {
         throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
       }
-      
       await api.put('/projects/sequence', { sequences });
-      await loadAll(); // Reload data after update
+      await loadAll();
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
