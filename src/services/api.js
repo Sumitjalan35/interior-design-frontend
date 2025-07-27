@@ -108,7 +108,11 @@ export const portfolioAPI = {
 
 // Services API
 export const servicesAPI = {
-  getAll: () => api.get('/services'),
+  getAll: () => api.get('/services', { 
+    params: { 
+      _t: Date.now() // Cache busting
+    } 
+  }),
   create: (serviceData) => api.post('/admin/services', serviceData),
   update: (id, serviceData) => api.put(`/admin/services/${id}`, serviceData),
   delete: (id) => api.delete(`/admin/services/${id}`),
