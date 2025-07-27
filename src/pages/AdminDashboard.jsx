@@ -45,44 +45,48 @@ export default function AdminDashboard() {
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
       
-      // Debug: Log the projects data structure
-      console.log('Raw projects response:', projectsResponse);
-      console.log('Projects response type:', typeof projectsResponse);
-      console.log('Is array:', Array.isArray(projectsResponse));
-      
-      // Extract the actual projects data from the response
+      // --- Merge sequence with portfolio ---
+      // Convert portfolio to a map for quick lookup
+      const portfolioArr = Array.isArray(p) ? p : [];
+      const portfolioMap = {};
+      portfolioArr.forEach(item => {
+        portfolioMap[item.id] = item;
+      });
+      // Extract sequence data
       let projectsData = projectsResponse;
       if (projectsResponse && projectsResponse.data) {
         projectsData = projectsResponse.data;
-        console.log('Extracted projects data from response.data:', projectsData);
       }
-      
-      if (Array.isArray(projectsData)) {
-        console.log('First project structure:', projectsData[0]);
-        console.log('First project keys:', Object.keys(projectsData[0] || {}));
-        console.log('First project _id:', projectsData[0]?._id);
-        console.log('First project id:', projectsData[0]?.id);
-        console.log('Total projects loaded:', projectsData.length);
-      } else {
-        console.log('Projects data is not an array:', projectsData);
-      }
-      
-      // Set projects data, with fallback to portfolio data if projects are empty
+      let mergedProjects = [];
       if (Array.isArray(projectsData) && projectsData.length > 0) {
-        setProjects(projectsData);
+        // Only keep projects that exist in the portfolio
+        mergedProjects = projectsData.filter(seqProj => portfolioMap[seqProj._id || seqProj.id]);
+        // Add any new portfolio projects not in the sequence list
+        const sequenceIds = new Set(mergedProjects.map(proj => proj._id || proj.id));
+        portfolioArr.forEach(item => {
+          if (!sequenceIds.has(item.id)) {
+            mergedProjects.push({
+              _id: item.id,
+              title: item.title,
+              category: item.category,
+              sequence: mergedProjects.length, // put at end
+              published: true,
+              featured: item.featured || false
+            });
+          }
+        });
       } else {
-        console.log('No projects data available, using portfolio data as fallback');
-        // Convert portfolio data to project format for sequence management
-        const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
+        // No sequence data, just use portfolio
+        mergedProjects = portfolioArr.map((item, idx) => ({
           _id: item.id,
           title: item.title,
           category: item.category,
-          sequence: item.sequence || 0,
+          sequence: idx,
           published: true,
           featured: item.featured || false
-        })) : [];
-        setProjects(portfolioAsProjects);
+        }));
       }
+      setProjects(mergedProjects);
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
