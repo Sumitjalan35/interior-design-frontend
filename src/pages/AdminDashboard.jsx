@@ -35,58 +35,61 @@ export default function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const [p, s, ss, projectsResponse] = await Promise.all([
+      const [p, s, ss, projectsResponse, realProjectsResponse] = await Promise.all([
         portfolioAPI.getAll().then(r => r.data),
         servicesAPI.getAll().then(r => r.data),
         slideshowAPI.getAll().then(r => r.data),
         api.get('/projects/sequence').then(r => r.data),
+        api.get('/projects').then(r => r.data),
       ]);
       setPortfolio(Array.isArray(p) ? p : []);
       setServices(Array.isArray(s) ? s : []);
       setSlideshow(Array.isArray(ss) ? ss : []);
-      
-      // --- Merge sequence with portfolio ---
-      // Convert portfolio to a map for quick lookup
+      let realProjectsArr = realProjectsResponse && realProjectsResponse.data ? realProjectsResponse.data : realProjectsResponse;
+      if (!Array.isArray(realProjectsArr)) realProjectsArr = [];
+      const realProjectIdSet = new Set(realProjectsArr.map(proj => (proj._id || proj.id)));
+      // --- Merge sequence with portfolio, but allow all portfolio projects ---
       const portfolioArr = Array.isArray(p) ? p : [];
       const portfolioMap = {};
       portfolioArr.forEach(item => {
         portfolioMap[item.id] = item;
       });
-      // Extract sequence data
       let projectsData = projectsResponse;
       if (projectsResponse && projectsResponse.data) {
         projectsData = projectsResponse.data;
       }
-      let mergedProjects = [];
-      if (Array.isArray(projectsData) && projectsData.length > 0) {
-        // Only keep projects that exist in the portfolio
-        mergedProjects = projectsData.filter(seqProj => portfolioMap[seqProj._id || seqProj.id]);
-        // Add any new portfolio projects not in the sequence list
-        const sequenceIds = new Set(mergedProjects.map(proj => proj._id || proj.id));
-        portfolioArr.forEach(item => {
-          if (!sequenceIds.has(item.id)) {
-            mergedProjects.push({
-              _id: item.id,
-              title: item.title,
-              category: item.category,
-              sequence: mergedProjects.length, // put at end
-              published: true,
-              featured: item.featured || false
-            });
-          }
-        });
-      } else {
-        // No sequence data, just use portfolio
-        mergedProjects = portfolioArr.map((item, idx) => ({
+      // Get localStorage order for portfolio-only projects
+      const portfolioOnlySequence = getPortfolioOnlySequence();
+      // Build a map of all portfolio projects (real and portfolio-only)
+      const allPortfolioProjects = portfolioArr.map(item => {
+        // Try to find sequence from backend or localStorage
+        let sequence = null;
+        // If real project, get sequence from backend if available
+        if (realProjectIdSet.has(item.id)) {
+          const backendProj = Array.isArray(projectsData) ? projectsData.find(seqProj => (seqProj._id || seqProj.id) === item.id) : null;
+          sequence = backendProj ? backendProj.sequence : null;
+        } else {
+          // Portfolio-only: get sequence from localStorage
+          const idx = portfolioOnlySequence.indexOf(item.id);
+          sequence = idx !== -1 ? idx + 10000 : null; // offset to always put after real projects if not reordered
+        }
+        return {
           _id: item.id,
           title: item.title,
           category: item.category,
-          sequence: idx,
+          sequence: sequence,
           published: true,
           featured: item.featured || false
-        }));
-      }
-      setProjects(mergedProjects);
+        };
+      });
+      // Sort by sequence, fallback to original order
+      allPortfolioProjects.sort((a, b) => {
+        if (a.sequence == null && b.sequence == null) return 0;
+        if (a.sequence == null) return 1;
+        if (b.sequence == null) return -1;
+        return a.sequence - b.sequence;
+      });
+      setProjects(allPortfolioProjects);
     } catch (e) {
       console.error('Error loading admin data:', e);
       setError('Failed to load admin data');
@@ -275,23 +278,38 @@ export default function AdminDashboard() {
     return typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]{24}$/.test(id);
   }
 
+  // Utility to get and set localStorage for portfolio-only sequence
+  function getPortfolioOnlySequence() {
+    try {
+      return JSON.parse(localStorage.getItem('portfolioOnlySequence') || '[]');
+    } catch {
+      return [];
+    }
+  }
+  function setPortfolioOnlySequence(seq) {
+    localStorage.setItem('portfolioOnlySequence', JSON.stringify(seq));
+  }
+
   async function handleSaveSequence() {
-    console.log('handleSaveSequence called');
     setLoading(true);
     try {
-      // Only include projects with valid MongoDB ObjectIds
-      const sequences = projects
-        .map((project, i) => {
-          const projectId = project._id || project.id || project._id?.toString();
-          if (!isValidObjectId(projectId)) return null;
-          return { id: projectId, sequence: i };
-        })
-        .filter(Boolean);
-      console.log('Saving sequences:', sequences);
-      if (sequences.length === 0) {
-        throw new Error('No valid project IDs found');
+      // Split into real and portfolio-only
+      const realSequences = [];
+      const portfolioOnlyIds = [];
+      projects.forEach((project, i) => {
+        const projectId = project._id || project.id || project._id?.toString();
+        if (isValidObjectId(projectId)) {
+          realSequences.push({ id: projectId, sequence: i });
+        } else {
+          portfolioOnlyIds.push(projectId);
+        }
+      });
+      // Save real project sequence to backend
+      if (realSequences.length > 0) {
+        await api.put('/projects/sequence', { sequences: realSequences });
       }
-      await api.put('/projects/sequence', { sequences });
+      // Save portfolio-only order to localStorage
+      setPortfolioOnlySequence(portfolioOnlyIds);
       loadAll();
       alert('Project sequence saved successfully!');
     } catch (e) {
@@ -303,28 +321,16 @@ export default function AdminDashboard() {
   }
 
   async function handleAutoSequence() {
-    console.log('handleAutoSequence called');
     setLoading(true);
     try {
       if (!Array.isArray(projects) || projects.length === 0) {
         throw new Error('No projects available for sequencing. Please refresh the page.');
       }
-      const projectList = [...projects];
-      projectList.sort((a, b) => a.title.localeCompare(b.title));
-      // Only include projects with valid MongoDB ObjectIds
-      const sequences = projectList
-        .map((project, i) => {
-          const projectId = project._id || project.id || project._id?.toString();
-          if (!isValidObjectId(projectId)) return null;
-          return { id: projectId, sequence: i };
-        })
-        .filter(Boolean);
-      console.log('Auto-sequencing sequences:', sequences);
-      if (sequences.length === 0) {
-        throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
-      }
-      await api.put('/projects/sequence', { sequences });
-      await loadAll();
+      // Sort all projects alphabetically
+      const sorted = [...projects].sort((a, b) => a.title.localeCompare(b.title));
+      setProjects(sorted);
+      // Save immediately
+      await handleSaveSequence();
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
       console.error('Error auto-sequencing:', e);
