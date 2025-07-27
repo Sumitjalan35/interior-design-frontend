@@ -57,16 +57,9 @@ export default function AdminDashboard() {
         console.log('Extracted projects data from response.data:', projectsData);
       }
       
-      if (Array.isArray(projectsData)) {
-        console.log('First project structure:', projectsData[0]);
-        console.log('First project keys:', Object.keys(projectsData[0] || {}));
-        console.log('First project _id:', projectsData[0]?._id);
-        console.log('First project id:', projectsData[0]?.id);
-        console.log('Total projects loaded:', projectsData.length);
-        setProjects(projectsData);
-      } else {
-        console.log('Projects data is not an array:', projectsData);
-        console.log('No projects data available, using portfolio data as fallback');
+      // If MongoDB data is not available or empty, use portfolio data
+      if (!Array.isArray(projectsData) || projectsData.length === 0) {
+        console.log('No MongoDB projects data available, using portfolio data as fallback');
         // Convert portfolio data to project format for sequence management
         const portfolioAsProjects = Array.isArray(p) ? p.map(item => ({
           _id: item.id,
@@ -77,6 +70,14 @@ export default function AdminDashboard() {
           featured: item.featured || false
         })) : [];
         setProjects(portfolioAsProjects);
+        console.log('Set portfolio projects:', portfolioAsProjects.length, 'projects');
+      } else {
+        console.log('First project structure:', projectsData[0]);
+        console.log('First project keys:', Object.keys(projectsData[0] || {}));
+        console.log('First project _id:', projectsData[0]?._id);
+        console.log('First project id:', projectsData[0]?.id);
+        console.log('Total projects loaded:', projectsData.length);
+        setProjects(projectsData);
       }
     } catch (e) {
       console.error('Error loading admin data:', e);
@@ -258,7 +259,34 @@ export default function AdminDashboard() {
       const requestPayload = { sequences };
       console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
       
-      await api.put('/projects/sequence', requestPayload);
+      // Check if we're using MongoDB or portfolio data
+      const isUsingMongoDB = projects.length > 0 && projects[0]._id && typeof projects[0]._id === 'string' && projects[0]._id.length > 10;
+      
+      if (isUsingMongoDB) {
+        // Update MongoDB sequence
+        await api.put('/projects/sequence', requestPayload);
+      } else {
+        // Update portfolio JSON sequence
+        const portfolioResponse = await portfolioAPI.getAll();
+        const portfolioData = portfolioResponse.data;
+        
+        // Update sequences in portfolio data
+        sequences.forEach(({ id, sequence }) => {
+          const portfolioItem = portfolioData.find(item => item.id.toString() === id.toString());
+          if (portfolioItem) {
+            portfolioItem.sequence = sequence;
+          }
+        });
+        
+        // Sort portfolio data by sequence
+        portfolioData.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+        
+        // Update each portfolio item
+        for (const item of portfolioData) {
+          await portfolioAPI.update(item.id, item);
+        }
+      }
+      
       await refreshSequenceData();
       alert('Project sequence updated successfully!');
     } catch (e) {
@@ -302,7 +330,34 @@ export default function AdminDashboard() {
         throw new Error('No valid project IDs found');
       }
       
-      await api.put('/projects/sequence', { sequences });
+      // Check if we're using MongoDB or portfolio data
+      const isUsingMongoDB = projects.length > 0 && projects[0]._id && typeof projects[0]._id === 'string' && projects[0]._id.length > 10;
+      
+      if (isUsingMongoDB) {
+        // Update MongoDB sequence
+        await api.put('/projects/sequence', { sequences });
+      } else {
+        // Update portfolio JSON sequence
+        const portfolioResponse = await portfolioAPI.getAll();
+        const portfolioData = portfolioResponse.data;
+        
+        // Update sequences in portfolio data
+        sequences.forEach(({ id, sequence }) => {
+          const portfolioItem = portfolioData.find(item => item.id.toString() === id.toString());
+          if (portfolioItem) {
+            portfolioItem.sequence = sequence;
+          }
+        });
+        
+        // Sort portfolio data by sequence
+        portfolioData.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+        
+        // Update each portfolio item
+        for (const item of portfolioData) {
+          await portfolioAPI.update(item.id, item);
+        }
+      }
+      
       await refreshSequenceData();
       alert('Project sequence saved successfully!');
     } catch (e) {
@@ -317,22 +372,26 @@ export default function AdminDashboard() {
     console.log('Refreshing sequence data...');
     setLoading(true);
     try {
-      const response = await api.get('/projects/sequence');
-      console.log('Sequence API response:', response);
-      
-      let projectsData = response.data;
-      if (response.data && response.data.data) {
-        projectsData = response.data.data;
+      // First try to get data from MongoDB sequence endpoint
+      let projectsData = null;
+      try {
+        const response = await api.get('/projects/sequence');
+        console.log('Sequence API response:', response);
+        
+        if (response.data && response.data.data) {
+          projectsData = response.data.data;
+        } else if (response.data) {
+          projectsData = response.data;
+        }
+        
+        console.log('MongoDB projects data:', projectsData);
+      } catch (mongoError) {
+        console.log('MongoDB sequence endpoint failed, using portfolio fallback:', mongoError.message);
       }
       
-      console.log('Extracted projects data:', projectsData);
-      
-      if (Array.isArray(projectsData)) {
-        console.log('Setting projects data:', projectsData.length, 'projects');
-        setProjects(projectsData);
-      } else {
-        console.log('Projects data is not an array, using portfolio fallback');
-        // Fallback to portfolio data
+      // If MongoDB data is not available or empty, use portfolio data
+      if (!Array.isArray(projectsData) || projectsData.length === 0) {
+        console.log('Using portfolio data as fallback');
         const portfolioResponse = await portfolioAPI.getAll();
         const portfolioData = portfolioResponse.data;
         const portfolioAsProjects = Array.isArray(portfolioData) ? portfolioData.map(item => ({
@@ -344,6 +403,10 @@ export default function AdminDashboard() {
           featured: item.featured || false
         })) : [];
         setProjects(portfolioAsProjects);
+        console.log('Set portfolio projects:', portfolioAsProjects.length, 'projects');
+      } else {
+        console.log('Setting MongoDB projects data:', projectsData.length, 'projects');
+        setProjects(projectsData);
       }
     } catch (e) {
       console.error('Error refreshing sequence data:', e);
@@ -398,7 +461,34 @@ export default function AdminDashboard() {
         throw new Error('No valid project IDs found. Please check if projects are properly loaded.');
       }
       
-      await api.put('/projects/sequence', { sequences });
+      // Check if we're using MongoDB or portfolio data
+      const isUsingMongoDB = projects.length > 0 && projects[0]._id && typeof projects[0]._id === 'string' && projects[0]._id.length > 10;
+      
+      if (isUsingMongoDB) {
+        // Update MongoDB sequence
+        await api.put('/projects/sequence', { sequences });
+      } else {
+        // Update portfolio JSON sequence
+        const portfolioResponse = await portfolioAPI.getAll();
+        const portfolioData = portfolioResponse.data;
+        
+        // Update sequences in portfolio data
+        sequences.forEach(({ id, sequence }) => {
+          const portfolioItem = portfolioData.find(item => item.id.toString() === id.toString());
+          if (portfolioItem) {
+            portfolioItem.sequence = sequence;
+          }
+        });
+        
+        // Sort portfolio data by sequence
+        portfolioData.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+        
+        // Update each portfolio item
+        for (const item of portfolioData) {
+          await portfolioAPI.update(item.id, item);
+        }
+      }
+      
       await refreshSequenceData(); // Use the new refresh function
       alert('Project sequence auto-saved successfully!');
     } catch (e) {
