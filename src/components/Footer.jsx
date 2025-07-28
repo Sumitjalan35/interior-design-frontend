@@ -187,7 +187,7 @@ export default function Footer() {
                     <i className="fas fa-award text-charcoal-900 text-lg" />
                   </div>
                   <div>
-                    <p className="text-cream-300 text-sm font-medium">Best Interior Design 2024</p>
+                    <p className="text-cream-300 text-sm font-medium">Best Interior Design </p>
                     <p className="text-cream-300/70 text-xs">Design Excellence Awards</p>
                   </div>
                 </div>
