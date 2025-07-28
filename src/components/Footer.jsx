@@ -32,13 +32,10 @@ export default function Footer() {
     { name: 'Color Consultation', href: '/services' }
   ];
 
-  const company = [
+ const company = [
     { name: 'About Us', href: '/about' },
     { name: 'Our Team', href: '/about' },
-    { name: 'Portfolio', href: '/portfolio' },
-    { name: 'Testimonials', href: '/about' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Careers', href: '/careers' }
+    { name: 'Portfolio', href: '/portfolio' }
   ];
 
  const socialLinks = [
