@@ -56,17 +56,20 @@ export default function BackgroundSlideshow({ interval = 5000 }) {
             ${i === index && fade ? 'opacity-100 scale-105 animate-kenburns' : 'opacity-0 scale-100'}
           `}
           style={{
-            filter: 'brightness(1.15) saturate(1.1) blur(0.5px)',
+            filter: 'brightness(1.2) saturate(1.15) blur(0.3px)',
             transition: 'opacity 0.6s, transform 6s',
             objectPosition: 'center center'
           }}
         />
       ))}
-      {/* Mobile-responsive overlay for better readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80 sm:from-black/60 sm:via-black/40 sm:to-black/70 md:from-black/50 md:via-black/30 md:to-black/60" />
+      {/* Enhanced mobile-responsive overlay for better readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 sm:from-black/70 sm:via-black/50 sm:to-black/80 md:from-black/60 md:via-black/40 md:to-black/70 lg:from-black/50 lg:via-black/30 lg:to-black/60" />
       
-      {/* Mobile-specific overlay for better text readability */}
-      <div className="absolute inset-0 sm:hidden bg-gradient-to-t from-black/60 via-transparent to-black/40" />
+      {/* Enhanced mobile-specific overlay for better text readability */}
+      <div className="absolute inset-0 sm:hidden bg-gradient-to-t from-black/70 via-transparent to-black/50" />
+      
+      {/* Additional mobile overlay for better contrast */}
+      <div className="absolute inset-0 md:hidden bg-gradient-to-r from-black/30 via-transparent to-black/30" />
     </div>
   );
 }
