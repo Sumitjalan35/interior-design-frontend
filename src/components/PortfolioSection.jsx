@@ -9,7 +9,7 @@ export default function PortfolioSection() {
   const [portfolioData, setPortfolioData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(6); // Show 6 projects initially
+  const [visibleCount, setVisibleCount] = useState(12); // Show 12 projects initially
 
   const categories = [
     { id: 'all', name: 'All Projects', icon: 'fas fa-th' },
@@ -56,12 +56,12 @@ export default function PortfolioSection() {
 
   // Reset visible count when category changes
   useEffect(() => {
-    setVisibleCount(6);
+    setVisibleCount(12);
   }, [activeCategory]);
 
   // Handle load more
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 6);
+    setVisibleCount(prev => prev + 12);
   };
 
   // Get projects to display
@@ -220,22 +220,13 @@ export default function PortfolioSection() {
 
         {/* Load More Button */}
         {hasMoreProjects && (
-          <div className={`text-center mt-12 transition-all duration-1000 ease-out delay-600 transform ${
-            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`}>
+          <div className="flex justify-center mt-8">
             <button
               onClick={handleLoadMore}
-              className="group relative px-8 py-4 border-2 border-bronze-400/50 text-bronze-400 font-semibold rounded-full overflow-hidden transition-all duration-300 hover:border-bronze-400 hover:bg-bronze-400/10 hover:scale-105"
+              className="px-6 py-2 rounded-full bg-gold-400 text-black font-semibold shadow-lg hover:bg-gold-500 transition-all duration-300"
             >
-              <span className="relative z-10 flex items-center gap-3">
-                <span>Load More Projects</span>
-                <i className="fas fa-chevron-down text-sm transition-transform duration-300 group-hover:translate-y-1" />
-              </span>
-              <div className="absolute inset-0 bg-bronze-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              Load More
             </button>
-            <div className="text-cream-300/70 text-sm mt-4">
-              Showing {displayedProjects.length} of {filteredProjects.length} projects
-            </div>
           </div>
         )}
 
