@@ -12,7 +12,6 @@ export default function Portfolio() {
   const [allProjects, setAllProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [visibleCount, setVisibleCount] = useState(12); // Show 12 initially
 
   // Fetch portfolio data from API
   useEffect(() => {
@@ -45,9 +44,6 @@ export default function Portfolio() {
   const filteredProjects = selectedCategory === 'All'
     ? allProjects
     : allProjects.filter(p => p.category === selectedCategory);
-
-  // Only show up to visibleCount projects
-  const visibleProjects = filteredProjects.slice(0, visibleCount);
 
   if (loading) {
     return (
@@ -93,7 +89,7 @@ export default function Portfolio() {
       {/* Portfolio grid */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-12">
         <AnimatePresence>
-          {visibleProjects.map((project, idx) => (
+          {filteredProjects.map((project, idx) => (
             <motion.div
               key={project.name}
               initial={{ opacity: 0, y: 40 }}
@@ -135,17 +131,6 @@ export default function Portfolio() {
           ))}
         </AnimatePresence>
       </div>
-      {/* Load More Button */}
-      {visibleCount < filteredProjects.length && (
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={() => setVisibleCount(v => v + 12)}
-            className="px-6 py-2 rounded-full bg-gold-400 text-black font-semibold shadow-lg hover:bg-gold-500 transition-all duration-300"
-          >
-            Load More
-          </button>
-        </div>
-      )}
       {/* Lightbox */}
       <Lightbox
         open={lightboxOpen}
