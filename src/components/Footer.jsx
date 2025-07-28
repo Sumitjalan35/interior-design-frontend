@@ -76,7 +76,7 @@ export default function Footer() {
                   <div className="w-8 h-8 bg-gradient-to-r from-bronze-400 to-gold-400 rounded-full flex items-center justify-center flex-shrink-0">
                     <i className="fas fa-map-marker-alt text-charcoal-900 text-sm" />
                   </div>
-                  <span className="text-cream-300 text-sm">Deva road lucknow</span>
+                  <span className="text-cream-300 text-sm">Bahraich–Gonda Road & Deva road lucknow</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gradient-to-r from-bronze-400 to-gold-400 rounded-full flex items-center justify-center flex-shrink-0">
