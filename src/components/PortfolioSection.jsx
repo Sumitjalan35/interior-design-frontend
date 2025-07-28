@@ -56,12 +56,12 @@ export default function PortfolioSection() {
 
   // Reset visible count when category changes
   useEffect(() => {
-    setVisibleCount(6);
+    setVisibleCount(12);
   }, [activeCategory]);
 
   // Handle load more
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 6);
+    setVisibleCount(prev => prev + 12);
   };
 
   // Get projects to display
