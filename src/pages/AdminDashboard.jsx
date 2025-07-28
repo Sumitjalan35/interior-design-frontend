@@ -517,8 +517,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-charcoal-900 text-cream-100 p-8">
-      <h1 className="text-3xl font-bold text-gold-400 mb-6">Admin Dashboard</h1>
+    <div className="min-h-screen bg-charcoal-900 text-cream-100 p-8 pt-32">
+      <h1 className="text-3xl font-bold text-gold-400 mb-6 text-center">Admin Dashboard</h1>
       <div className="flex gap-4 mb-8">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-lg font-semibold ${tab === t ? 'bg-gold-400 text-charcoal-900' : 'bg-charcoal-800 text-gold-400'}`}>{t}</button>
