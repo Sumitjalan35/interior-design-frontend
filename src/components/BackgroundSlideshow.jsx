@@ -52,28 +52,22 @@ export default function BackgroundSlideshow({ interval = 5000 }) {
           key={img}
           src={img}
           alt="Portfolio background"
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-600 ease-in-out
+          className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-600 ease-in-out
             ${i === index && fade ? 'opacity-100 scale-105 animate-kenburns' : 'opacity-0 scale-100'}
-            sm:object-cover sm:w-full sm:h-full md:object-cover md:w-full md:h-full lg:object-cover lg:w-full lg:h-full
           `}
           style={{
             filter: 'brightness(1.15) saturate(1.1) blur(0.5px)',
             transition: 'opacity 0.6s, transform 6s',
+            objectPosition: 'center center'
           }}
         />
       ))}
-      {/* Improved overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 md:from-black/50 md:via-black/30 md:to-black/60" />
+      {/* Mobile-responsive overlay for better readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80 sm:from-black/60 sm:via-black/40 sm:to-black/70 md:from-black/50 md:via-black/30 md:to-black/60" />
+      
+      {/* Mobile-specific overlay for better text readability */}
+      <div className="absolute inset-0 sm:hidden bg-gradient-to-t from-black/60 via-transparent to-black/40" />
     </div>
   );
 }
 
-// Add Ken Burns effect via Tailwind plugin or custom CSS
-// Add this to your global CSS (e.g., index.css):
-// .animate-kenburns {
-//   animation: kenburns 12s ease-in-out infinite alternate;
-// }
-// @keyframes kenburns {
-//   0% { transform: scale(1.05) translate(0, 0); }
-//   100% { transform: scale(1.12) translate(-2%, -2%); }
-// } 
