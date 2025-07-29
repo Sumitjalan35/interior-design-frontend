@@ -35,9 +35,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('token');
+      localStorage.removeItem('admin_token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/admin-login';
     }
     return Promise.reject(error);
   }
