@@ -64,6 +64,7 @@ export default function App() {
           <Route path='/contactus' element={<ContactUs />} />
           {/* Admin Routes (new, for easy access) */}
           <Route path='/admin-login' element={<AdminLogin />} />
+          <Route path='/login' element={<AdminLogin />} />
           <Route path='/admin' element={<AdminDashboard />} />
           <Route path='/admin/project/:id' element={<AdminProjectDetail />} />
         </Routes>
