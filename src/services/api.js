@@ -1,13 +1,26 @@
 import axios from 'axios';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL;
+// Base URL for backend API
+const rawBaseUrl = import.meta.env.VITE_API_URL;
+const apiBaseUrl = rawBaseUrl ? rawBaseUrl.replace(/\/+$/, '') : rawBaseUrl;
+
+// Warn loudly in the browser console if the env var is missing or looks wrong
 if (!apiBaseUrl) {
-  console.warn('VITE_API_URL environment variable is not set. Please set it for production.');
+  console.error(
+    '[API] VITE_API_URL is not set. All API calls will fail. ' +
+    'Set VITE_API_URL to your backend origin, e.g. https://int-b.vercel.app'
+  );
+} else if (apiBaseUrl.endsWith('/api')) {
+  console.warn(
+    '[API] VITE_API_URL should be the backend ORIGIN only (e.g. https://int-b.vercel.app), ' +
+    'not include the /api suffix. The code already appends /api.'
+  );
 }
+
 // Create axios instance
 const api = axios.create({
   baseURL: `${apiBaseUrl}/api`,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,12 +40,20 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for centralized error handling & logging
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
+    const config = error.config || {};
+
+    // Helpful debug info in the browser console
+    console.error('[API ERROR]', {
+      method: config.method,
+      url: config.baseURL ? `${config.baseURL}${config.url}` : config.url,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('admin_token');
@@ -129,4 +150,4 @@ export const slideshowAPI = {
 export const healthCheck = () => api.get('/health');
 
 export default api; 
-export const BACKEND_URL = import.meta.env.VITE_API_URL;
+export const BACKEND_URL = apiBaseUrl;
